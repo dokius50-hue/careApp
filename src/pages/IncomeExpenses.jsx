@@ -3,9 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useOrg } from '../context/OrgContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { supabase } from '../lib/supabase.js';
-import LineChart from '../components/LineChart.jsx';
 import ExportOverlay from '../components/ExportOverlay.jsx';
-import { getRevenueChartData } from '../lib/chartData.js';
 import { getLocalDateString } from '../lib/dates.js';
 import { formatEuro, parseEuroToCents } from '../lib/money.js';
 
@@ -19,7 +17,6 @@ const IncomeExpensesPage = () => {
   const { t } = useTranslation();
   const { currentOrgId } = useOrg();
   const { user } = useAuth();
-  const [chartData, setChartData] = useState([]);
   const [incomeList, setIncomeList] = useState([]);
   const [expenseList, setExpenseList] = useState([]);
   const [showAddIncome, setShowAddIncome] = useState(false);
@@ -28,8 +25,7 @@ const IncomeExpensesPage = () => {
 
   const loadData = async () => {
     if (!currentOrgId) return;
-    const [revenue, incomeRes, expenseRes] = await Promise.all([
-      getRevenueChartData(currentOrgId),
+    const [incomeRes, expenseRes] = await Promise.all([
       supabase
         .from('income_entries')
         .select('id, name, date, amount_cents')
@@ -41,7 +37,6 @@ const IncomeExpensesPage = () => {
         .eq('org_id', currentOrgId)
         .order('date', { ascending: false })
     ]);
-    setChartData(revenue ?? []);
     setIncomeList(incomeRes.data ?? []);
     setExpenseList(expenseRes.data ?? []);
   };
@@ -102,11 +97,6 @@ const IncomeExpensesPage = () => {
           {t('incomeExpenses.export')}
         </button>
       </div>
-
-      <section className="space-y-2">
-        <h2 className="text-sm font-medium text-slate-700">{t('incomeExpenses.revenueChart')}</h2>
-        <LineChart data={chartData} />
-      </section>
 
       <div className="flex gap-2">
         <button

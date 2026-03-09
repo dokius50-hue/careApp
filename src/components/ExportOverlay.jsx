@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { useReactToPrint } from 'react-to-print';
 import { useOrg } from '../context/OrgContext.jsx';
 import { supabase } from '../lib/supabase.js';
-import { getRevenueChartData, getVolunteerHoursPerWeekChartData } from '../lib/chartData.js';
 import { formatEuro } from '../lib/money.js';
 import { getLocalDateString } from '../lib/dates.js';
 
@@ -21,9 +20,9 @@ const lastDayOfMonth = () => {
 };
 
 const SECTION_KEYS = {
-  incomeExpenses: ['incomeEntries', 'expenseEntries', 'revenueChart'],
+  incomeExpenses: ['incomeEntries', 'expenseEntries'],
   bank: ['bankTransactions'],
-  volunteers: ['volunteerHoursSummary', 'hoursByVolunteer', 'weeklyChart']
+  volunteers: ['volunteerHoursSummary', 'hoursByVolunteer']
 };
 
 const PrintReport = ({ orgName, dateFrom, dateTo, generatedAt, reportData, labels }) => {

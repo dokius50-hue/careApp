@@ -3,8 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { useOrg } from '../context/OrgContext.jsx';
 import { supabase } from '../lib/supabase.js';
 import ExportOverlay from '../components/ExportOverlay.jsx';
-import HoursBarChart from '../components/HoursBarChart.jsx';
-import { getVolunteerHoursPerWeekChartData } from '../lib/chartData.js';
 import { getLocalDateString } from '../lib/dates.js';
 
 const VolunteersPage = () => {
@@ -12,7 +10,6 @@ const VolunteersPage = () => {
   const { currentOrgId } = useOrg();
   const [volunteers, setVolunteers] = useState([]);
   const [hoursList, setHoursList] = useState([]);
-  const [chartData, setChartData] = useState([]);
   const [showAddHours, setShowAddHours] = useState(false);
   const [showManage, setShowManage] = useState(false);
   const [showExport, setShowExport] = useState(false);
@@ -21,7 +18,7 @@ const VolunteersPage = () => {
   const loadData = async () => {
     if (!currentOrgId) return;
 
-    const [volRes, hoursRes, chart] = await Promise.all([
+    const [volRes, hoursRes] = await Promise.all([
       supabase
         .from('volunteers')
         .select('id, name')
@@ -32,13 +29,11 @@ const VolunteersPage = () => {
         .select('id, volunteer_id, date, hours, volunteers ( id, name )')
         .eq('org_id', currentOrgId)
         .order('date', { ascending: false })
-        .order('created_at', { ascending: false }),
-      getVolunteerHoursPerWeekChartData(currentOrgId)
+        .order('created_at', { ascending: false })
     ]);
 
     setVolunteers(volRes.data ?? []);
     setHoursList(hoursRes.data ?? []);
-    setChartData(chart ?? []);
   };
 
   useEffect(() => {
@@ -97,11 +92,6 @@ const VolunteersPage = () => {
           {t('volunteers.export')}
         </button>
       </div>
-
-      <section className="space-y-2">
-        <h2 className="text-sm font-medium text-slate-700">{t('volunteers.hoursPerWeek')}</h2>
-        <HoursBarChart data={chartData} />
-      </section>
 
       <div className="flex gap-2">
         <button
