@@ -1,0 +1,143 @@
+{
+  "app": {
+    "title": "CaritasApp",
+    "loading": "Loading..."
+  },
+  "nav": {
+    "home": "Home",
+    "incomeExpenses": "Income & Expenses",
+    "bank": "Bank",
+    "volunteers": "Volunteers",
+    "settings": "Settings"
+  },
+  "auth": {
+    "signIn": "Sign in",
+    "signUp": "Sign up",
+    "email": "Email",
+    "password": "Password",
+    "loading": "..."
+  },
+  "home": {
+    "currentOrg": "Current organisation",
+    "createNewOrg": "Create new organisation",
+    "today": "Today",
+    "noData": "No data yet",
+    "revenueChart": "Revenue (last 20 days open)",
+    "topVolunteers": "Top volunteers (last 90 days)",
+    "noVolunteerHours": "No volunteer hours yet."
+  },
+  "createOrg": {
+    "title": "Create organisation",
+    "orgName": "Organisation name",
+    "openingBalance": "Current bank balance (€)",
+    "creating": "Creating...",
+    "submit": "Create organisation"
+  },
+  "common": {
+    "noDataYet": "No data yet."
+  },
+  "exportPdf": {
+    "reportTitle": "Export Report",
+    "reportSubtitle": "Export Report — {{from}} to {{to}}",
+    "generated": "Generated",
+    "name": "Name",
+    "date": "Date",
+    "amount": "Amount",
+    "note": "Note",
+    "type": "Type",
+    "volunteer": "Volunteer",
+    "hours": "Hours",
+    "totalHoursInRange": "Total hours in range: {{hours}} h",
+    "organisation": "Organisation"
+  },
+  "incomeExpenses": {
+    "addIncome": "Add Income",
+    "addExpense": "Add Expense",
+    "revenueChart": "Revenue (last 20 days open)",
+    "name": "Name",
+    "amount": "Amount",
+    "date": "Date",
+    "tags": "Tags (comma-separated)",
+    "save": "Save",
+    "cancel": "Cancel",
+    "recentIncome": "Recent income",
+    "recentExpense": "Recent expenses",
+    "noEntries": "No entries yet",
+    "export": "Export"
+  },
+  "exportOverlay": {
+    "title": "Export Report",
+    "close": "Close",
+    "dateFrom": "From",
+    "dateTo": "To",
+    "generatePdf": "Generate PDF",
+    "sections": {
+      "incomeEntries": "Income entries",
+      "expenseEntries": "Expense entries",
+      "revenueChart": "Revenue chart",
+      "bankTransactions": "Bank transactions",
+      "volunteerHoursSummary": "Volunteer hours summary",
+      "hoursByVolunteer": "Hours by volunteer",
+      "weeklyChart": "Weekly chart"
+    }
+  },
+  "bank": {
+    "currentBalance": "Current balance",
+    "noBankAccount": "No bank account set up",
+    "deposit": "Deposit",
+    "withdraw": "Withdraw",
+    "amount": "Amount",
+    "note": "Note",
+    "date": "Date",
+    "save": "Save",
+    "cancel": "Cancel",
+    "transactions": "Transactions",
+    "noTransactions": "No transactions yet.",
+    "export": "Export"
+  },
+  "volunteers": {
+    "addHours": "Add Hours",
+    "manageVolunteers": "Manage Volunteers",
+    "hoursPerWeek": "Volunteer hours (last 5 weeks)",
+    "volunteer": "Volunteer",
+    "hours": "Hours",
+    "date": "Date",
+    "name": "Name",
+    "save": "Save",
+    "cancel": "Cancel",
+    "markInactive": "Mark inactive",
+    "addNew": "Add new volunteer",
+    "noVolunteers": "No volunteers yet.",
+    "hoursHistory": "Hours history",
+    "noHours": "No hours logged yet.",
+    "export": "Export"
+  },
+  "settings": {
+    "title": "Settings",
+    "exportSettings": "Export settings",
+    "exportSettingsPlaceholder": "TBD",
+    "fontSize": "Font size",
+    "fontSizeSmall": "Small",
+    "fontSizeMedium": "Medium",
+    "fontSizeLarge": "Large",
+    "language": "Language",
+    "languageEnglish": "English",
+    "languageItalian": "Italian (Coming soon)",
+    "organisation": "Organisation",
+    "createOrg": "Create organisation",
+    "createOrgHint": "Create an organisation to get started, or switch to one you belong to.",
+    "switchOrg": "Switch organisation",
+    "currentOrg": "Current organisation",
+    "createNewOrg": "Create new organisation",
+    "membersWithAccess": "Members with access",
+    "memberCount": "{{count}} member(s)",
+    "noMembers": "No other members yet.",
+    "inviteUser": "Invite user (Coming soon)",
+    "addMember": "Add member",
+    "addMemberPlaceholder": "Email address",
+    "addMemberSuccess": "Member added.",
+    "addMemberError": "Could not add member.",
+    "logout": "Logout"
+  }
+}
+
