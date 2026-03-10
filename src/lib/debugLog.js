@@ -1,7 +1,9 @@
-const DEBUG_INGEST = 'http://127.0.0.1:7393/ingest/9b2f55a8-329e-41a6-8f6a-8cbeabddb8f7';
+// Only send to ingest if explicitly enabled (e.g. VITE_DEBUG_INGEST_URL set). Avoids console noise when ingest is not running.
+const DEBUG_INGEST = import.meta.env.VITE_DEBUG_INGEST_URL || null;
 const SESSION_ID = '1abaea';
 
 export function debugLog(location, message, data, hypothesisId) {
+  if (!DEBUG_INGEST) return;
   const payload = {
     sessionId: SESSION_ID,
     location,

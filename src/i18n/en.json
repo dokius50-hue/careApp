@@ -23,11 +23,14 @@
     "forgotMagicLink": "Send me a one-time sign-in link",
     "forgotBack": "Back to sign in",
     "forgotResetSent": "Check your email to set a new password.",
-    "forgotMagicLinkSent": "Check your email for a sign-in link (valid for 1 hour)."
+    "forgotMagicLinkSent": "Check your email for a sign-in link (valid for 1 hour).",
+    "emailRateLimitExceeded": "Too many emails sent. Please try again in a few minutes."
   },
   "welcome": {
     "title": "Welcome to Shopeto.",
     "forgotHint": "If you forget your password we'll send you a login link at {{email}}",
+    "forgotHintBefore": "If you forget your password we'll send you a login link at ",
+    "forgotHintAfter": ".",
     "continue": "Continue"
   },
   "updatePassword": {
@@ -137,11 +140,42 @@
     "emailMissing": "Please enter an email address.",
     "emailNoData": "Could not build report for this period.",
     "emailSent": "Report sent by email.",
+    "showAs": "Show as",
+    "groups": {
+      "cash": "Income & expenses",
+      "bank": "Bank",
+      "volunteers": "Volunteers"
+    },
+    "sectionDesc": {
+      "incomeSummary": "Total income in period",
+      "expenseSummary": "Total expenses in period",
+      "incomeEntries": "Income breakdown",
+      "expenseEntries": "Expense breakdown",
+      "bankSummary": "Balance at start and end of period",
+      "bankTransactions": "Transaction list",
+      "volunteerHoursSummary": "Total hours in period",
+      "hoursByVolunteer": "Hours breakdown"
+    },
+    "includeBreakdown": {
+      "incomeEntries": "Include income table (detailed list)",
+      "expenseEntries": "Include expense table (detailed list)",
+      "bankTransactions": "Include transaction list",
+      "hoursByVolunteer": "Include hours per volunteer"
+    },
     "mode": {
       "entries": "All entries",
       "month": "By month",
       "item": "By item",
       "byVolunteer": "By volunteer"
+    },
+    "modeDesc": {
+      "fullListEntries": "Full list — every income/expense entry line by line",
+      "fullListTransactions": "Full list — every transaction line by line",
+      "month": "Grouped by month — one total per month",
+      "monthHours": "Grouped by month — total hours per month",
+      "byItem": "Grouped by name — one total per income or expense type",
+      "byDescription": "Grouped by description — one total per transaction note",
+      "perVolunteer": "Per volunteer — hours (or total) per person"
     },
     "sections": {
       "incomeSummary": "Income summary",
@@ -212,11 +246,16 @@
     "membersWithAccess": "Members with access",
     "memberCount": "{{count}} member(s)",
     "noMembers": "No other members yet.",
+    "addedOn": "Added",
     "inviteUser": "Invite user (Coming soon)",
     "addMember": "Add member",
     "addMemberPlaceholder": "Email address",
     "addMemberSuccess": "Member added.",
     "addMemberError": "Could not add member.",
+    "inviteNotRegistered": "{{email}} is not registered.",
+    "inviteNotRegisteredHint": "Send them an invite to join the platform? They will be added to {{orgName}} when they accept.",
+    "sendInvite": "Send invite",
+    "inviteSent": "Invite sent. They will join this organisation when they sign up.",
     "logout": "Logout"
   }
 }

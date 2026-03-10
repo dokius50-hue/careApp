@@ -12,7 +12,7 @@ test('add member: UI output and network/console', async ({ page }) => {
   const responseStatuses: { url: string; status: number }[] = [];
   page.on('response', (res) => {
     const u = res.url();
-    if (u.includes('supabase') && (u.includes('functions') || u.includes('rest'))) {
+    if (u.includes('supabase') && u.includes('rest')) {
       responseStatuses.push({ url: u.split('?')[0], status: res.status() });
     }
   });
@@ -24,13 +24,9 @@ test('add member: UI output and network/console', async ({ page }) => {
     page.getByText(/member added/i).or(page.locator('p.text-rose-600'))
   ).toBeVisible({ timeout: 20000 });
 
-  const fnCalls = responseStatuses.filter((r) => r.url.includes('functions'));
   const rpcCalls = responseStatuses.filter((r) => r.url.includes('rpc'));
-
-  expect(fnCalls.length, 'Edge Function should be called').toBeGreaterThanOrEqual(1);
-  expect(fnCalls[0].status, 'Edge Function should return 200').toBe(200);
-  expect(rpcCalls.length, 'add_org_member RPC should be called').toBeGreaterThanOrEqual(1);
-  expect(rpcCalls.some((r) => r.status === 200 || r.status === 204), 'RPC should succeed').toBe(true);
+  expect(rpcCalls.length, 'lookup_user_id_by_email and add_org_member RPCs should be called').toBeGreaterThanOrEqual(2);
+  expect(rpcCalls.some((r) => r.status === 200 || r.status === 204), 'RPCs should succeed').toBe(true);
 });
 
 test('logout redirects to sign-in', async ({ page }) => {
@@ -56,4 +52,24 @@ test('switch org updates UI when two orgs exist', async ({ page }) => {
   await expect(page.getByText(/today/i).first()).toBeVisible({ timeout: 5000 });
   await page.goto('/settings');
   await expect(switchSelect).toHaveValue(await switchSelect.locator('option').nth(1).getAttribute('value'));
+});
+
+test('members list shows emails and date added', async ({ page }) => {
+  await expect(page.getByText(/members with access/i)).toBeVisible();
+
+  const membersList = page.getByTestId('settings-members-list');
+  const noMembers = page.getByText(/no other members yet/i);
+
+  if (await noMembers.isVisible()) {
+    await expect(membersList).not.toBeVisible();
+    return;
+  }
+
+  await expect(membersList).toBeVisible();
+  const rows = membersList.getByTestId('settings-member-row');
+  await expect(rows.first()).toBeVisible({ timeout: 5000 });
+
+  const firstRow = rows.first();
+  await expect(firstRow).toContainText(/@/);
+  await expect(firstRow).toContainText(/added|aggiunto/i);
 });

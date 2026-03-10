@@ -23,11 +23,14 @@
     "forgotMagicLink": "Invia un link di accesso monouso",
     "forgotBack": "Torna all'accesso",
     "forgotResetSent": "Controlla la tua email per impostare una nuova password.",
-    "forgotMagicLinkSent": "Controlla la tua email per il link di accesso (valido 1 ora)."
+    "forgotMagicLinkSent": "Controlla la tua email per il link di accesso (valido 1 ora).",
+    "emailRateLimitExceeded": "Troppe email inviate. Riprova tra qualche minuto."
   },
   "welcome": {
     "title": "Benvenuto su Shopeto.",
     "forgotHint": "Se dimentichi la password ti invieremo un link di accesso a {{email}}",
+    "forgotHintBefore": "Se dimentichi la password ti invieremo un link di accesso a ",
+    "forgotHintAfter": ".",
     "continue": "Continua"
   },
   "updatePassword": {
@@ -137,11 +140,42 @@
     "emailMissing": "Inserisci un indirizzo email.",
     "emailNoData": "Impossibile generare il report per questo periodo.",
     "emailSent": "Report inviato per email.",
+    "showAs": "Mostra come",
+    "groups": {
+      "cash": "Entrate e uscite",
+      "bank": "Banca",
+      "volunteers": "Volontari"
+    },
+    "sectionDesc": {
+      "incomeSummary": "Totale entrate nel periodo",
+      "expenseSummary": "Totale uscite nel periodo",
+      "incomeEntries": "Dettaglio entrate",
+      "expenseEntries": "Dettaglio uscite",
+      "bankSummary": "Saldo a inizio e fine periodo",
+      "bankTransactions": "Elenco movimenti",
+      "volunteerHoursSummary": "Totale ore nel periodo",
+      "hoursByVolunteer": "Dettaglio ore"
+    },
+    "includeBreakdown": {
+      "incomeEntries": "Includi tabella entrate (elenco dettagliato)",
+      "expenseEntries": "Includi tabella uscite (elenco dettagliato)",
+      "bankTransactions": "Includi elenco movimenti",
+      "hoursByVolunteer": "Includi ore per volontario"
+    },
     "mode": {
       "entries": "Tutte le voci",
       "month": "Per mese",
       "item": "Per voce",
       "byVolunteer": "Per volontario"
+    },
+    "modeDesc": {
+      "fullListEntries": "Elenco completo — ogni entrata/uscita riga per riga",
+      "fullListTransactions": "Elenco completo — ogni movimento riga per riga",
+      "month": "Raggruppato per mese — un totale per mese",
+      "monthHours": "Raggruppato per mese — ore totali per mese",
+      "byItem": "Raggruppato per nome — un totale per tipo di entrata o uscita",
+      "byDescription": "Raggruppato per descrizione — un totale per nota",
+      "perVolunteer": "Per volontario — ore (o totale) per persona"
     },
     "sections": {
       "incomeSummary": "Riepilogo entrate",
@@ -212,11 +246,16 @@
     "membersWithAccess": "Membri con accesso",
     "memberCount": "{{count}} membro/i",
     "noMembers": "Nessun altro membro ancora.",
+    "addedOn": "Aggiunto il",
     "inviteUser": "Invita utente (in arrivo)",
     "addMember": "Aggiungi membro",
     "addMemberPlaceholder": "Indirizzo email",
     "addMemberSuccess": "Membro aggiunto.",
     "addMemberError": "Impossibile aggiungere il membro.",
+    "inviteNotRegistered": "{{email}} non è registrato.",
+    "inviteNotRegisteredHint": "Vuoi inviare un invito alla piattaforma? Sarà aggiunto a {{orgName}} quando accetta.",
+    "sendInvite": "Invia invito",
+    "inviteSent": "Invito inviato. Entrerà in questa organizzazione quando si registra.",
     "logout": "Esci"
   }
 }

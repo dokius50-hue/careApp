@@ -18,6 +18,17 @@ A mobile-first Progressive Web App for charity shop management. Tracks daily inc
 
 ---
 
+## Testing
+
+E2E tests use Playwright and hit the real app (Vite dev server) and Supabase. After changing settings, organisation, or members flows, run:
+
+- **Full suite:** `npm run test:e2e`
+- **Settings only (faster):** `npm run test:e2e:settings`
+
+Requires `E2E_USER_EMAIL`, `E2E_USER_PASSWORD`, and optionally `E2E_USER_EMAIL_B` / `E2E_USER_PASSWORD_B` for cross-org tests.
+
+---
+
 ## Core Principles
 
 - **Mobile-first.** Every screen is designed for a phone screen first. Tappable targets, no tiny text, no horizontal scrolling.

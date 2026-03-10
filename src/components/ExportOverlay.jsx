@@ -26,6 +26,70 @@ const SECTION_KEYS = {
   home: ['incomeSummary', 'expenseSummary', 'incomeEntries', 'expenseEntries', 'bankSummary', 'bankTransactions', 'volunteerHoursSummary', 'hoursByVolunteer']
 };
 
+/** Groups for visual segmentation: summary first, then optional breakdown with mode selector */
+const SECTION_GROUPS = {
+  incomeExpenses: [
+    {
+      id: 'cash',
+      labelKey: 'exportOverlay.groups.cash',
+      sections: [
+        { key: 'incomeSummary', type: 'summary' },
+        { key: 'incomeEntries', type: 'breakdown' },
+        { key: 'expenseSummary', type: 'summary' },
+        { key: 'expenseEntries', type: 'breakdown' }
+      ]
+    }
+  ],
+  bank: [
+    {
+      id: 'bank',
+      labelKey: 'exportOverlay.groups.bank',
+      sections: [
+        { key: 'bankSummary', type: 'summary' },
+        { key: 'bankTransactions', type: 'breakdown' }
+      ]
+    }
+  ],
+  volunteers: [
+    {
+      id: 'volunteers',
+      labelKey: 'exportOverlay.groups.volunteers',
+      sections: [
+        { key: 'volunteerHoursSummary', type: 'summary' },
+        { key: 'hoursByVolunteer', type: 'breakdown' }
+      ]
+    }
+  ],
+  home: [
+    {
+      id: 'cash',
+      labelKey: 'exportOverlay.groups.cash',
+      sections: [
+        { key: 'incomeSummary', type: 'summary' },
+        { key: 'incomeEntries', type: 'breakdown' },
+        { key: 'expenseSummary', type: 'summary' },
+        { key: 'expenseEntries', type: 'breakdown' }
+      ]
+    },
+    {
+      id: 'bank',
+      labelKey: 'exportOverlay.groups.bank',
+      sections: [
+        { key: 'bankSummary', type: 'summary' },
+        { key: 'bankTransactions', type: 'breakdown' }
+      ]
+    },
+    {
+      id: 'volunteers',
+      labelKey: 'exportOverlay.groups.volunteers',
+      sections: [
+        { key: 'volunteerHoursSummary', type: 'summary' },
+        { key: 'hoursByVolunteer', type: 'breakdown' }
+      ]
+    }
+  ]
+};
+
 const PrintReport = ({ orgName, dateFrom, dateTo, generatedAt, reportData, labels, locale = 'en' }) => {
   const l = labels || {};
   const fromLabel = formatDisplayDate(dateFrom, locale);
@@ -500,7 +564,29 @@ const ExportOverlay = ({ onClose, context }) => {
     }
   };
 
-  const sectionKeys = SECTION_KEYS[context] || [];
+  const sectionGroups = SECTION_GROUPS[context] || [];
+
+  const getModeOptionLabel = (sectionKey, modeValue) => {
+    if (sectionKey === 'hoursByVolunteer') {
+      return modeValue === 'entries'
+        ? t('exportOverlay.modeDesc.perVolunteer')
+        : modeValue === 'month'
+          ? t('exportOverlay.modeDesc.monthHours')
+          : t('exportOverlay.modeDesc.perVolunteer');
+    }
+    if (sectionKey === 'bankTransactions') {
+      return modeValue === 'entries'
+        ? t('exportOverlay.modeDesc.fullListTransactions')
+        : modeValue === 'month'
+          ? t('exportOverlay.modeDesc.month')
+          : t('exportOverlay.modeDesc.byDescription');
+    }
+    return modeValue === 'entries'
+      ? t('exportOverlay.modeDesc.fullListEntries')
+      : modeValue === 'month'
+        ? t('exportOverlay.modeDesc.month')
+        : t('exportOverlay.modeDesc.byItem');
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center">
@@ -522,56 +608,92 @@ const ExportOverlay = ({ onClose, context }) => {
           </button>
         </div>
 
-        <div className="space-y-3 mb-4">
-          <div className="flex gap-2 items-center">
-            <label className="text-sm">{t('exportOverlay.dateFrom')}</label>
+        <div className="grid grid-cols-2 gap-2 mb-4">
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-0.5">{t('exportOverlay.dateFrom')}</label>
             <input
               type="date"
               value={dateFrom}
               onChange={(e) => setDateFrom(e.target.value)}
-              className="rounded border border-slate-300 px-2 py-1 text-sm"
+              className="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
               data-testid="export-date-from"
             />
           </div>
-          <div className="flex gap-2 items-center">
-            <label className="text-sm">{t('exportOverlay.dateTo')}</label>
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-0.5">{t('exportOverlay.dateTo')}</label>
             <input
               type="date"
               value={dateTo}
               onChange={(e) => setDateTo(e.target.value)}
-              className="rounded border border-slate-300 px-2 py-1 text-sm"
+              className="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
               data-testid="export-date-to"
             />
           </div>
         </div>
 
         <div className="space-y-3 mb-4">
-          {sectionKeys.map((key) => (
-            <div key={key} className="flex items-center justify-between gap-2 text-sm">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={sections[key] !== false}
-                  onChange={() => toggleSection(key)}
-                  data-testid={`export-section-${key}`}
-                />
-                {t(`exportOverlay.sections.${key}`)}
-              </label>
-              {(key === 'incomeEntries' || key === 'expenseEntries' || key === 'bankTransactions' || key === 'hoursByVolunteer') && sections[key] !== false && (
-                <select
-                  className="rounded border border-slate-300 px-2 py-1 text-xs"
-                  value={sectionModes[key] || 'entries'}
-                  onChange={(e) => updateSectionMode(key, e.target.value)}
-                >
-                  <option value="entries">{t('exportOverlay.mode.entries')}</option>
-                  <option value="month">{t('exportOverlay.mode.month')}</option>
-                  <option value="item">
-                    {key === 'hoursByVolunteer'
-                      ? t('exportOverlay.mode.byVolunteer')
-                      : t('exportOverlay.mode.item')}
-                  </option>
-                </select>
-              )}
+          {sectionGroups.map((group) => (
+            <div
+              key={group.id}
+              className="rounded-xl border border-slate-200 bg-slate-50/80 p-3"
+              role="group"
+              aria-label={t(group.labelKey)}
+            >
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2.5">
+                {t(group.labelKey)}
+              </p>
+              <div className="space-y-2">
+                {group.sections.map(({ key, type }) => (
+                  <div key={key}>
+                    {type === 'summary' && (
+                      <label
+                        className="flex items-center gap-2 cursor-pointer text-sm"
+                        title={t(`exportOverlay.sectionDesc.${key}`)}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={sections[key] !== false}
+                          onChange={() => toggleSection(key)}
+                          data-testid={`export-section-${key}`}
+                          className="rounded border-slate-300"
+                        />
+                        <span>{t(`exportOverlay.sections.${key}`)}</span>
+                      </label>
+                    )}
+                    {type === 'breakdown' && (
+                      <div className="ml-5 pl-1 border-l-2 border-slate-200 space-y-1.5">
+                        <label className="flex items-center gap-2 cursor-pointer text-sm">
+                          <input
+                            type="checkbox"
+                            checked={sections[key] !== false}
+                            onChange={() => toggleSection(key)}
+                            data-testid={`export-section-${key}`}
+                            className="rounded border-slate-300"
+                          />
+                          <span>{t(`exportOverlay.includeBreakdown.${key}`)}</span>
+                        </label>
+                        {sections[key] !== false && (
+                          <div className="flex items-center gap-2">
+                            <label className="text-xs text-slate-500 shrink-0">{t('exportOverlay.showAs')}</label>
+                            <select
+                              className="rounded-lg border border-slate-300 px-2 py-1.5 text-xs flex-1 min-w-0 bg-white"
+                              value={key === 'hoursByVolunteer' && sectionModes[key] === 'item' ? 'entries' : (sectionModes[key] || 'entries')}
+                              onChange={(e) => updateSectionMode(key, e.target.value)}
+                              title={getModeOptionLabel(key, sectionModes[key] || 'entries')}
+                            >
+                              <option value="entries">{getModeOptionLabel(key, 'entries')}</option>
+                              <option value="month">{getModeOptionLabel(key, 'month')}</option>
+                              {key !== 'hoursByVolunteer' && (
+                                <option value="item">{getModeOptionLabel(key, 'item')}</option>
+                              )}
+                            </select>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           ))}
         </div>

@@ -17,6 +17,8 @@ const SettingsPage = () => {
   const [fontSize, setFontSizeState] = useState('medium');
   const [addMemberEmail, setAddMemberEmail] = useState('');
   const [addMemberStatus, setAddMemberStatus] = useState(null);
+  const [showInviteOffer, setShowInviteOffer] = useState(false);
+  const [pendingInviteEmail, setPendingInviteEmail] = useState('');
   const [showCreateOrg, setShowCreateOrg] = useState(false);
   const [orgMembers, setOrgMembers] = useState([]);
   const [editingOrgName, setEditingOrgName] = useState(false);
@@ -49,17 +51,28 @@ const SettingsPage = () => {
     setOrgNameError('');
   };
 
-  useEffect(() => {
-    if (!currentOrgId) {
+  const loadOrgMembers = React.useCallback(async () => {
+    if (!currentOrgId || typeof currentOrgId !== 'string') {
       setOrgMembers([]);
       return;
     }
-    const load = async () => {
-      const { data } = await supabase.from('org_members').select('user_id').eq('org_id', currentOrgId);
+    try {
+      const { data, error } = await supabase.rpc('get_org_members_with_details', { p_org_id: currentOrgId });
+      if (error) {
+        console.warn('get_org_members_with_details:', error.message);
+        setOrgMembers([]);
+        return;
+      }
       setOrgMembers(data ?? []);
-    };
-    void load();
+    } catch (err) {
+      console.warn('loadOrgMembers:', err);
+      setOrgMembers([]);
+    }
   }, [currentOrgId]);
+
+  useEffect(() => {
+    void loadOrgMembers();
+  }, [loadOrgMembers]);
 
   useEffect(() => {
     const stored = localStorage.getItem(FONT_SIZE_KEY) || 'medium';
@@ -76,23 +89,18 @@ const SettingsPage = () => {
   const handleAddMember = async (e) => {
     e.preventDefault();
     setAddMemberStatus(null);
+    setShowInviteOffer(false);
     const email = addMemberEmail.trim();
     if (!email || !currentOrgId) return;
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const headers = session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : undefined;
-      const { data: fnData, error: fnError } = await supabase.functions.invoke('lookup-user-by-email', {
-        body: { email },
-        ...(headers && { headers })
-      });
-      const fnErrorMsg = fnData?.error ?? fnError?.message;
-      if (fnErrorMsg || fnError) {
-        setAddMemberStatus(fnErrorMsg || 'Lookup failed');
+      const { data: userId, error: lookupError } = await supabase.rpc('lookup_user_id_by_email', { p_email: email });
+      if (lookupError) {
+        setAddMemberStatus(lookupError.message || 'Lookup failed');
         return;
       }
-      const userId = fnData?.user_id ?? fnData?.data?.user_id;
       if (!userId) {
-        setAddMemberStatus(fnData?.error || 'User not found');
+        setPendingInviteEmail(email);
+        setShowInviteOffer(true);
         return;
       }
       const { error: rpcError } = await supabase.rpc('add_org_member', {
@@ -105,11 +113,51 @@ const SettingsPage = () => {
       }
       setAddMemberStatus('success');
       setAddMemberEmail('');
-      const { data: members } = await supabase.from('org_members').select('user_id').eq('org_id', currentOrgId);
-      setOrgMembers(members ?? []);
+      await loadOrgMembers();
     } catch (err) {
       setAddMemberStatus(err?.message || 'error');
     }
+  };
+
+  const handleSendInvite = async () => {
+    if (!pendingInviteEmail || !currentOrgId) return;
+    setAddMemberStatus(null);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) {
+        setAddMemberStatus('Please sign in again to send an invite.');
+        return;
+      }
+      const redirectTo = typeof window !== 'undefined' ? window.location.origin : '';
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/invite-user-to-org`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          apikey: import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+        },
+        body: JSON.stringify({ email: pendingInviteEmail, org_id: currentOrgId, redirect_to: redirectTo })
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setAddMemberStatus(body?.error || body?.message || res.statusText || 'Invite failed');
+        return;
+      }
+      setAddMemberStatus('invite_sent');
+      setShowInviteOffer(false);
+      setPendingInviteEmail('');
+      setAddMemberEmail('');
+    } catch (err) {
+      setAddMemberStatus(err?.message || 'error');
+    }
+  };
+
+  const handleCancelInvite = () => {
+    setShowInviteOffer(false);
+    setPendingInviteEmail('');
+    setAddMemberStatus(null);
   };
 
   const handleLogout = async () => {
@@ -229,10 +277,15 @@ const SettingsPage = () => {
             {orgMembers.length === 0 ? (
               <p className="mt-1 text-xs text-slate-500">{t('settings.noMembers')}</p>
             ) : (
-              <ul className="mt-1 divide-y divide-slate-100 rounded border border-slate-100 bg-slate-50/50">
+              <ul className="mt-1 divide-y divide-slate-100 rounded border border-slate-100 bg-slate-50/50" data-testid="settings-members-list">
                 {orgMembers.map((m) => (
-                  <li key={m.user_id} className="px-2 py-1.5 text-sm text-slate-700">
-                    Member
+                  <li key={m.user_id} className="px-2 py-1.5 text-sm text-slate-700" data-testid="settings-member-row">
+                    <span className="font-medium">{m.email ?? '—'}</span>
+                    {m.joined_at && (
+                      <span className="ml-2 text-xs text-slate-500">
+                        {t('settings.addedOn')} {new Date(m.joined_at).toLocaleDateString(i18n.language || 'en', { dateStyle: 'medium' })}
+                      </span>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -240,25 +293,53 @@ const SettingsPage = () => {
           </div>
           <div>
             <p className="text-xs font-medium text-slate-600">{t('settings.addMember')}</p>
-            <form onSubmit={handleAddMember} className="mt-1 flex gap-2">
-              <input
-                type="email"
-                value={addMemberEmail}
-                onChange={(e) => setAddMemberEmail(e.target.value)}
-                placeholder={t('settings.addMemberPlaceholder')}
-                className="flex-1 rounded border border-slate-300 px-2 py-1.5 text-sm"
-                data-testid="settings-add-member-input"
-              />
-              <button
-                type="submit"
-                className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm text-white hover:bg-slate-800"
-                data-testid="settings-add-member-btn"
-              >
-                {t('settings.addMember')}
-              </button>
-            </form>
+            {showInviteOffer ? (
+              <div className="mt-1 rounded-lg border border-amber-200 bg-amber-50/80 p-3" data-testid="settings-invite-offer">
+                <p className="text-sm text-slate-700">
+                  {t('settings.inviteNotRegistered', { email: pendingInviteEmail, orgName: currentOrg?.name ?? '' })}
+                </p>
+                <p className="mt-1 text-xs text-slate-600">{t('settings.inviteNotRegisteredHint')}</p>
+                <div className="mt-2 flex gap-2">
+                  <button
+                    type="button"
+                    className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm text-white hover:bg-slate-800"
+                    onClick={handleSendInvite}
+                    data-testid="settings-send-invite-btn"
+                  >
+                    {t('settings.sendInvite')}
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50"
+                    onClick={handleCancelInvite}
+                    data-testid="settings-cancel-invite-btn"
+                  >
+                    {t('bank.cancel')}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handleAddMember} className="mt-1 flex gap-2">
+                <input
+                  type="email"
+                  value={addMemberEmail}
+                  onChange={(e) => setAddMemberEmail(e.target.value)}
+                  placeholder={t('settings.addMemberPlaceholder')}
+                  className="flex-1 rounded border border-slate-300 px-2 py-1.5 text-sm"
+                  data-testid="settings-add-member-input"
+                />
+                <button
+                  type="submit"
+                  className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm text-white hover:bg-slate-800"
+                  data-testid="settings-add-member-btn"
+                >
+                  {t('settings.addMember')}
+                </button>
+              </form>
+            )}
             {addMemberStatus === 'success' && <p className="mt-1 text-xs text-emerald-600">{t('settings.addMemberSuccess')}</p>}
-            {addMemberStatus && addMemberStatus !== 'success' && <p className="mt-1 text-xs text-rose-600">{addMemberStatus}</p>}
+            {addMemberStatus === 'invite_sent' && <p className="mt-1 text-xs text-emerald-600">{t('settings.inviteSent')}</p>}
+            {addMemberStatus && addMemberStatus !== 'success' && addMemberStatus !== 'invite_sent' && <p className="mt-1 text-xs text-rose-600">{addMemberStatus}</p>}
           </div>
         </div>
       </section>

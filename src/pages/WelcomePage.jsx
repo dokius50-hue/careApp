@@ -20,7 +20,11 @@ const WelcomePage = () => {
             {t('welcome.title')}
           </h1>
           <p className="text-sm text-slate-600 leading-relaxed">
-            {t('welcome.forgotHint', { email })}
+            {t('welcome.forgotHintBefore')}
+            <span className="font-semibold text-slate-900 break-all rounded px-1 py-0.5 bg-slate-100/80" style={{ fontFamily: 'ui-monospace, monospace' }}>
+              {email}
+            </span>
+            {t('welcome.forgotHintAfter')}
           </p>
           <button
             type="button"
