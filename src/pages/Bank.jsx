@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useOrg } from '../context/OrgContext.jsx';
 import { supabase } from '../lib/supabase.js';
 import ExportOverlay from '../components/ExportOverlay.jsx';
-import { formatDisplayDate, formatDisplayMonthYear, getLocalDateString } from '../lib/dates.js';
+import FormModal, { formModalClasses as fm } from '../components/FormModal.jsx';
+import { formatDisplayDate, formatDateDMonYYYY, formatDisplayMonthYear, getLocalDateString, parseDisplayDateToIso } from '../lib/dates.js';
 import { formatEuro, parseEuroToCents } from '../lib/money.js';
 
 const BankPage = () => {
@@ -58,7 +59,7 @@ const BankPage = () => {
     const form = e.target;
     const amountCents = parseEuroToCents(form.amount.value);
     const note = form.note.value.trim() || null;
-    const date = form.date.value || getLocalDateString();
+    const date = parseDisplayDateToIso(form.date.value);
     if (amountCents <= 0 || !bankAccount?.id) return;
     await supabase.from('bank_transactions').insert({
       org_id: currentOrgId,
@@ -76,7 +77,7 @@ const BankPage = () => {
     const form = e.target;
     const amountCents = parseEuroToCents(form.amount.value);
     const note = form.note.value.trim() || null;
-    const date = form.date.value || getLocalDateString();
+    const date = parseDisplayDateToIso(form.date.value);
     if (amountCents <= 0 || !bankAccount?.id) return;
     await supabase.from('bank_transactions').insert({
       org_id: currentOrgId,
@@ -95,7 +96,7 @@ const BankPage = () => {
     const form = e.target;
     const amountCents = parseEuroToCents(form.amount.value);
     const note = form.note.value.trim() || null;
-    const date = form.date.value || getLocalDateString();
+    const date = parseDisplayDateToIso(form.date.value);
     if (amountCents <= 0) return;
     await supabase.from('bank_transactions').update({ amount_cents: amountCents, note, date }).eq('id', editingTx.id);
     setEditingTx(null);
@@ -200,114 +201,104 @@ const BankPage = () => {
       )}
 
       {showDeposit && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setShowDeposit(false)} aria-hidden />
-          <div className="relative w-full max-w-sm rounded-xl bg-white p-4 shadow-lg">
-            <h3 className="mb-3 text-lg font-semibold">{t('bank.deposit')}</h3>
-            <form onSubmit={handleDeposit} className="space-y-3">
-              <label className="block text-sm font-medium">
-                {t('bank.amount')} (€)
-                <input type="text" name="amount" className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5" placeholder="0.00" required />
-              </label>
-              <label className="block text-sm font-medium">
-                {t('bank.note')}
-                <input type="text" name="note" className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5" />
-              </label>
-              <label className="block text-sm font-medium">
-                {t('bank.date')}
-                <input type="date" name="date" defaultValue={getLocalDateString()} className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5" />
-              </label>
-              <div className="flex gap-2 pt-2">
-                <button type="button" className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm" onClick={() => setShowDeposit(false)}>
-                  {t('bank.cancel')}
-                </button>
-                <button type="submit" className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm text-white hover:bg-emerald-700">
-                  {t('bank.save')}
-                </button>
+        <FormModal open onClose={() => setShowDeposit(false)} title={t('bank.deposit')}>
+          <form onSubmit={handleDeposit} className="space-y-3">
+            <label className={fm.label}>
+              {t('bank.amount')}
+              <div className="relative mt-1">
+                <span className={fm.amountEuroPrefix} aria-hidden>€</span>
+                <input type="text" name="amount" className={fm.inputWithEuroPrefix} placeholder="0.00" required />
               </div>
-            </form>
-          </div>
-        </div>
+            </label>
+            <label className={fm.label}>
+              {t('bank.note')}
+              <input type="text" name="note" className={`mt-1 ${fm.input}`} />
+            </label>
+            <label className={fm.label}>
+              {t('bank.date')}
+              <input type="text" name="date" defaultValue={formatDateDMonYYYY(getLocalDateString())} className={`mt-1 ${fm.input}`} placeholder="e.g. 10 Mar 2025" />
+            </label>
+            <div className="flex gap-2 pt-2">
+              <button type="button" className={fm.btnSecondary} onClick={() => setShowDeposit(false)}>
+                {t('bank.cancel')}
+              </button>
+              <button type="submit" className={fm.btnPrimaryEmerald}>
+                {t('bank.save')}
+              </button>
+            </div>
+          </form>
+        </FormModal>
       )}
 
       {showWithdraw && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setShowWithdraw(false)} aria-hidden />
-          <div className="relative w-full max-w-sm rounded-xl bg-white p-4 shadow-lg">
-            <h3 className="mb-3 text-lg font-semibold">{t('bank.withdraw')}</h3>
-            <form onSubmit={handleWithdraw} className="space-y-3">
-              <label className="block text-sm font-medium">
-                {t('bank.amount')} (€)
-                <input type="text" name="amount" className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5" placeholder="0.00" required />
-              </label>
-              <label className="block text-sm font-medium">
-                {t('bank.note')}
-                <input type="text" name="note" className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5" />
-              </label>
-              <label className="block text-sm font-medium">
-                {t('bank.date')}
-                <input type="date" name="date" defaultValue={getLocalDateString()} className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5" />
-              </label>
-              <div className="flex gap-2 pt-2">
-                <button type="button" className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm" onClick={() => setShowWithdraw(false)}>
-                  {t('bank.cancel')}
-                </button>
-                <button type="submit" className="rounded-lg bg-rose-600 px-3 py-1.5 text-sm text-white hover:bg-rose-700">
-                  {t('bank.save')}
-                </button>
+        <FormModal open onClose={() => setShowWithdraw(false)} title={t('bank.withdraw')}>
+          <form onSubmit={handleWithdraw} className="space-y-3">
+            <label className={fm.label}>
+              {t('bank.amount')}
+              <div className="relative mt-1">
+                <span className={fm.amountEuroPrefix} aria-hidden>€</span>
+                <input type="text" name="amount" className={fm.inputWithEuroPrefix} placeholder="0.00" required />
               </div>
-            </form>
-          </div>
-        </div>
+            </label>
+            <label className={fm.label}>
+              {t('bank.note')}
+              <input type="text" name="note" className={`mt-1 ${fm.input}`} />
+            </label>
+            <label className={fm.label}>
+              {t('bank.date')}
+              <input type="text" name="date" defaultValue={formatDateDMonYYYY(getLocalDateString())} className={`mt-1 ${fm.input}`} placeholder="e.g. 10 Mar 2025" />
+            </label>
+            <div className="flex gap-2 pt-2">
+              <button type="button" className={fm.btnSecondary} onClick={() => setShowWithdraw(false)}>
+                {t('bank.cancel')}
+              </button>
+              <button type="submit" className={fm.btnPrimaryRose}>
+                {t('bank.save')}
+              </button>
+            </div>
+          </form>
+        </FormModal>
       )}
 
       {editingTx && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setEditingTx(null)} aria-hidden />
-          <div className="relative w-full max-w-sm rounded-xl bg-white p-4 shadow-lg">
-            <h3 className="mb-3 text-lg font-semibold">{t('bank.editTransaction')}</h3>
-            <form onSubmit={handleUpdateTransaction} className="space-y-3">
-              <p className="text-xs text-slate-500">
-                {editingTx.type === 'deposit' ? t('bank.deposit') : t('bank.withdraw')}
-              </p>
-              <label className="block text-sm font-medium">
-                {t('bank.amount')} (€)
-                <input type="text" name="amount" defaultValue={centsToEuroInput(editingTx.amount_cents)} className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5" placeholder="0.00" required />
-              </label>
-              <label className="block text-sm font-medium">
-                {t('bank.note')}
-                <input type="text" name="note" defaultValue={editingTx.note ?? ''} className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5" />
-              </label>
-              <label className="block text-sm font-medium">
-                {t('bank.date')}
-                <input type="date" name="date" defaultValue={editingTx.date} className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5" />
-              </label>
-              <div className="flex gap-2 pt-2">
-                <button
-                  type="button"
-                  className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
-                  onClick={() => setEditingTx(null)}
-                >
-                  {t('bank.cancel')}
-                </button>
-                <button
-                  type="button"
-                  className="rounded-lg border border-rose-300 px-3 py-1.5 text-sm text-rose-700 hover:bg-rose-50"
-                  onClick={handleDeleteTransaction}
-                  data-testid="bank-delete-transaction-btn"
-                >
-                  {t('common.delete')}
-                </button>
-                <button
-                  type="submit"
-                  className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm text-white hover:bg-slate-800"
-                >
-                  {t('bank.save')}
-                </button>
+        <FormModal open onClose={() => setEditingTx(null)} title={t('bank.editTransaction')}>
+          <form onSubmit={handleUpdateTransaction} className="space-y-3">
+            <p className="text-xs text-slate-500">
+              {editingTx.type === 'deposit' ? t('bank.deposit') : t('bank.withdraw')}
+            </p>
+            <label className={fm.label}>
+              {t('bank.amount')}
+              <div className="relative mt-1">
+                <span className={fm.amountEuroPrefix} aria-hidden>€</span>
+                <input type="text" name="amount" defaultValue={centsToEuroInput(editingTx.amount_cents)} className={fm.inputWithEuroPrefix} placeholder="0.00" required />
               </div>
-            </form>
-          </div>
-        </div>
+            </label>
+            <label className={fm.label}>
+              {t('bank.note')}
+              <input type="text" name="note" defaultValue={editingTx.note ?? ''} className={`mt-1 ${fm.input}`} />
+            </label>
+            <label className={fm.label}>
+              {t('bank.date')}
+              <input type="text" name="date" defaultValue={formatDateDMonYYYY(editingTx.date)} className={`mt-1 ${fm.input}`} placeholder="e.g. 10 Mar 2025" />
+            </label>
+            <div className="flex gap-2 pt-2">
+              <button type="button" className={fm.btnSecondary} onClick={() => setEditingTx(null)}>
+                {t('bank.cancel')}
+              </button>
+              <button
+                type="button"
+                className={fm.btnDanger}
+                onClick={handleDeleteTransaction}
+                data-testid="bank-delete-transaction-btn"
+              >
+                {t('common.delete')}
+              </button>
+              <button type="submit" className={fm.btnPrimarySlate}>
+                {t('bank.save')}
+              </button>
+            </div>
+          </form>
+        </FormModal>
       )}
 
       {showExport && <ExportOverlay onClose={() => setShowExport(false)} context="bank" />}

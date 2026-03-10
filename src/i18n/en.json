@@ -5,7 +5,7 @@
   },
   "nav": {
     "home": "Home",
-    "incomeExpenses": "Income & Expenses",
+    "incomeExpenses": "Cash",
     "bank": "Bank",
     "volunteers": "Volunteers",
     "settings": "Settings"
@@ -16,6 +16,31 @@
     "email": "Email",
     "password": "Password",
     "loading": "..."
+  },
+  "authLanding": {
+    "tagline": "Charity shop management, simplified",
+    "intro": "CaritasApp helps your organisation track daily cash, bank movements, and volunteer time — all from your phone or tablet.",
+    "forWho": "Built for charity shops and small teams",
+    "forWhoDesc": "Whether you run one shop or several, keep everything in one place. Data stays with your organisation, not with individual devices.",
+    "featuresTitle": "What you can do",
+    "featureCash": "Cash",
+    "featureCashDesc": "Log income and expenses with dates and tags. See net cash position at a glance.",
+    "featureBank": "Bank",
+    "featureBankDesc": "Record deposits and withdrawals. Track balance alongside your cash ledger.",
+    "featureVolunteers": "Volunteers",
+    "featureVolunteersDesc": "Log hours per volunteer, see weekly charts and totals. Manage your team list.",
+    "featureReports": "Reports",
+    "featureReportsDesc": "Export to PDF or send by email. Choose date ranges and sections. Print-friendly A4 layouts.",
+    "featureOrgs": "Multiple organisations",
+    "featureOrgsDesc": "Switch between organisations in one account. Each org has its own data and members.",
+    "availabilityTitle": "Always available",
+    "availabilityPwa": "Install as an app",
+    "availabilityPwaDesc": "Add to your home screen for quick access. Works offline for viewing; syncs when back online.",
+    "availabilityMobile": "Mobile-first",
+    "availabilityMobileDesc": "Designed for phones first. Large tap targets, readable text, no pinching.",
+    "availabilitySecure": "Secure",
+    "availabilitySecureDesc": "Email sign-in. Your data is stored securely and only visible to your organisation.",
+    "cta": "Sign in above to get started"
   },
   "home": {
     "currentOrg": "Current organisation",
@@ -32,7 +57,7 @@
   "createOrg": {
     "title": "Create organisation",
     "orgName": "Organisation name",
-    "openingBalance": "Current bank balance (€)",
+    "openingBalance": "Current bank balance",
     "creating": "Creating...",
     "submit": "Create organisation"
   },

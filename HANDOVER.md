@@ -53,9 +53,9 @@ Get both from Supabase Dashboard → Project Settings → API.
 - **Config:** In Supabase Dashboard → Edge Functions → `send-report-email`:
   - **Verify JWT** = OFF (so anon key works).
   - Secrets: `RESEND_API_KEY` (from Resend).
-- **From address:** Currently `reports@caritasapp.local`. Resend returns 403 until the domain is verified. To fix:
-  - **Option A:** In the function, set `from: 'onboarding@resend.dev'`, redeploy → emails send from Resend’s test sender.
-  - **Option B:** In Resend add and verify your domain, then set `from: 'reports@yourdomain.com'` in the function and redeploy.
+- **From address:** Default is `reports@shopeto.org` (official domain). Resend returns 403 until the domain is verified. To fix:
+  - **Option A:** Set secret `REPORT_FROM_EMAIL=onboarding@resend.dev`, redeploy → emails send from Resend’s test sender.
+  - **Option B:** In Resend add and verify **shopeto.org**, add the DNS records in Namescheap, then redeploy (no secret needed; default is already reports@shopeto.org).
 - **Redeploy after code/secret changes:**
   ```bash
   npx supabase functions deploy send-report-email --project-ref nnaqadncxiciwwbwurcm

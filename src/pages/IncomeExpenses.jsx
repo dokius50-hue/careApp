@@ -4,7 +4,8 @@ import { useOrg } from '../context/OrgContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { supabase } from '../lib/supabase.js';
 import ExportOverlay from '../components/ExportOverlay.jsx';
-import { formatDisplayDate, getLocalDateString } from '../lib/dates.js';
+import FormModal, { formModalClasses as fm } from '../components/FormModal.jsx';
+import { formatDisplayDate, formatDateDMonYYYY, getLocalDateString, parseDisplayDateToIso } from '../lib/dates.js';
 import { formatEuro, parseEuroToCents } from '../lib/money.js';
 
 const tagsFromString = (s) =>
@@ -73,7 +74,7 @@ const IncomeExpensesPage = () => {
     const form = e.target;
     const name = form.name.value.trim();
     const amountCents = parseEuroToCents(form.amount.value);
-    const date = form.date.value || getLocalDateString();
+    const date = parseDisplayDateToIso(form.date.value);
     const tags = tagsFromString(form.tags.value);
     if (!name || amountCents <= 0 || !currentOrgId || !user?.id) return;
     await supabase.from('income_entries').insert({
@@ -93,7 +94,7 @@ const IncomeExpensesPage = () => {
     const form = e.target;
     const name = form.name.value.trim();
     const amountCents = parseEuroToCents(form.amount.value);
-    const date = form.date.value || getLocalDateString();
+    const date = parseDisplayDateToIso(form.date.value);
     const tags = tagsFromString(form.tags.value);
     if (!name || amountCents <= 0 || !currentOrgId || !user?.id) return;
     await supabase.from('expense_entries').insert({
@@ -114,7 +115,7 @@ const IncomeExpensesPage = () => {
     const form = e.target;
     const name = form.name.value.trim();
     const amountCents = parseEuroToCents(form.amount.value);
-    const date = form.date.value || getLocalDateString();
+    const date = parseDisplayDateToIso(form.date.value);
     const tags = tagsFromString(form.tags.value);
     if (!name || amountCents <= 0) return;
     await supabase.from('income_entries').update({ name, amount_cents: amountCents, date, tags }).eq('id', editingEntry.row.id);
@@ -128,7 +129,7 @@ const IncomeExpensesPage = () => {
     const form = e.target;
     const name = form.name.value.trim();
     const amountCents = parseEuroToCents(form.amount.value);
-    const date = form.date.value || getLocalDateString();
+    const date = parseDisplayDateToIso(form.date.value);
     const tags = tagsFromString(form.tags.value);
     if (!name || amountCents <= 0) return;
     await supabase.from('expense_entries').update({ name, amount_cents: amountCents, date, tags }).eq('id', editingEntry.row.id);
@@ -244,173 +245,155 @@ const IncomeExpensesPage = () => {
       </div>
 
       {showAddIncome && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setShowAddIncome(false)} aria-hidden />
-          <div className="relative w-full max-w-sm rounded-xl bg-white p-4 shadow-lg">
-            <h3 className="mb-3 text-lg font-semibold">{t('incomeExpenses.addIncome')}</h3>
-            <form onSubmit={handleAddIncome} className="space-y-3">
-              <label className="block text-sm font-medium">
-                {t('incomeExpenses.name')}
-                <input type="text" name="name" className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5" required />
-              </label>
-              <label className="block text-sm font-medium">
-                {t('incomeExpenses.amount')} (€)
-                <input type="text" name="amount" className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5" placeholder="0.00" required />
-              </label>
-              <label className="block text-sm font-medium">
-                {t('incomeExpenses.date')}
-                <input type="date" name="date" defaultValue={getLocalDateString()} className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5" />
-              </label>
-              <label className="block text-sm font-medium">
-                {t('incomeExpenses.tags')}
-                <input type="text" name="tags" className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5" placeholder="tag1, tag2" />
-              </label>
-              <div className="flex gap-2 pt-2">
-                <button type="button" className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm" onClick={() => setShowAddIncome(false)}>
-                  {t('incomeExpenses.cancel')}
-                </button>
-                <button type="submit" className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm text-white hover:bg-emerald-700">
-                  {t('incomeExpenses.save')}
-                </button>
+        <FormModal open onClose={() => setShowAddIncome(false)} title={t('incomeExpenses.addIncome')}>
+          <form onSubmit={handleAddIncome} className="space-y-3">
+            <label className={fm.label}>
+              {t('incomeExpenses.name')}
+              <input type="text" name="name" className={`mt-1 ${fm.input}`} required />
+            </label>
+            <label className={fm.label}>
+              {t('incomeExpenses.amount')}
+              <div className="relative mt-1">
+                <span className={fm.amountEuroPrefix} aria-hidden>€</span>
+                <input type="text" name="amount" className={fm.inputWithEuroPrefix} placeholder="0.00" required />
               </div>
-            </form>
-          </div>
-        </div>
+            </label>
+            <label className={fm.label}>
+              {t('incomeExpenses.date')}
+              <input type="text" name="date" defaultValue={formatDateDMonYYYY(getLocalDateString())} className={`mt-1 ${fm.input}`} placeholder="e.g. 10 Mar 2025" />
+            </label>
+            <label className={fm.label}>
+              {t('incomeExpenses.tags')}
+              <input type="text" name="tags" className={`mt-1 ${fm.input}`} placeholder="tag1, tag2" />
+            </label>
+            <div className="flex gap-2 pt-2">
+              <button type="button" className={fm.btnSecondary} onClick={() => setShowAddIncome(false)}>
+                {t('incomeExpenses.cancel')}
+              </button>
+              <button type="submit" className={fm.btnPrimaryEmerald}>
+                {t('incomeExpenses.save')}
+              </button>
+            </div>
+          </form>
+        </FormModal>
       )}
 
       {showAddExpense && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setShowAddExpense(false)} aria-hidden />
-          <div className="relative w-full max-w-sm rounded-xl bg-white p-4 shadow-lg">
-            <h3 className="mb-3 text-lg font-semibold">{t('incomeExpenses.addExpense')}</h3>
-            <form onSubmit={handleAddExpense} className="space-y-3">
-              <label className="block text-sm font-medium">
-                {t('incomeExpenses.name')}
-                <input type="text" name="name" className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5" required />
-              </label>
-              <label className="block text-sm font-medium">
-                {t('incomeExpenses.amount')} (€)
-                <input type="text" name="amount" className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5" placeholder="0.00" required />
-              </label>
-              <label className="block text-sm font-medium">
-                {t('incomeExpenses.date')}
-                <input type="date" name="date" defaultValue={getLocalDateString()} className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5" />
-              </label>
-              <label className="block text-sm font-medium">
-                {t('incomeExpenses.tags')}
-                <input type="text" name="tags" className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5" placeholder="tag1, tag2" />
-              </label>
-              <div className="flex gap-2 pt-2">
-                <button type="button" className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm" onClick={() => setShowAddExpense(false)}>
-                  {t('incomeExpenses.cancel')}
-                </button>
-                <button type="submit" className="rounded-lg bg-rose-600 px-3 py-1.5 text-sm text-white hover:bg-rose-700">
-                  {t('incomeExpenses.save')}
-                </button>
+        <FormModal open onClose={() => setShowAddExpense(false)} title={t('incomeExpenses.addExpense')}>
+          <form onSubmit={handleAddExpense} className="space-y-3">
+            <label className={fm.label}>
+              {t('incomeExpenses.name')}
+              <input type="text" name="name" className={`mt-1 ${fm.input}`} required />
+            </label>
+            <label className={fm.label}>
+              {t('incomeExpenses.amount')}
+              <div className="relative mt-1">
+                <span className={fm.amountEuroPrefix} aria-hidden>€</span>
+                <input type="text" name="amount" className={fm.inputWithEuroPrefix} placeholder="0.00" required />
               </div>
-            </form>
-          </div>
-        </div>
+            </label>
+            <label className={fm.label}>
+              {t('incomeExpenses.date')}
+              <input type="text" name="date" defaultValue={formatDateDMonYYYY(getLocalDateString())} className={`mt-1 ${fm.input}`} placeholder="e.g. 10 Mar 2025" />
+            </label>
+            <label className={fm.label}>
+              {t('incomeExpenses.tags')}
+              <input type="text" name="tags" className={`mt-1 ${fm.input}`} placeholder="tag1, tag2" />
+            </label>
+            <div className="flex gap-2 pt-2">
+              <button type="button" className={fm.btnSecondary} onClick={() => setShowAddExpense(false)}>
+                {t('incomeExpenses.cancel')}
+              </button>
+              <button type="submit" className={fm.btnPrimaryRose}>
+                {t('incomeExpenses.save')}
+              </button>
+            </div>
+          </form>
+        </FormModal>
       )}
 
       {editingEntry?.type === 'income' && editingEntry.row && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setEditingEntry(null)} aria-hidden />
-          <div className="relative w-full max-w-sm rounded-xl bg-white p-4 shadow-lg">
-            <h3 className="mb-3 text-lg font-semibold">{t('incomeExpenses.editIncome')}</h3>
-            <form onSubmit={handleUpdateIncome} className="space-y-3">
-              <label className="block text-sm font-medium">
-                {t('incomeExpenses.name')}
-                <input type="text" name="name" defaultValue={editingEntry.row.name} className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5" required />
-              </label>
-              <label className="block text-sm font-medium">
-                {t('incomeExpenses.amount')} (€)
-                <input type="text" name="amount" defaultValue={centsToEuroInput(editingEntry.row.amount_cents)} className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5" placeholder="0.00" required />
-              </label>
-              <label className="block text-sm font-medium">
-                {t('incomeExpenses.date')}
-                <input type="date" name="date" defaultValue={editingEntry.row.date} className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5" />
-              </label>
-              <label className="block text-sm font-medium">
-                {t('incomeExpenses.tags')}
-                <input type="text" name="tags" defaultValue={tagsToString(editingEntry.row.tags)} className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5" placeholder="tag1, tag2" />
-              </label>
-              <div className="flex gap-2 pt-2">
-                <button
-                  type="button"
-                  className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
-                  onClick={() => setEditingEntry(null)}
-                >
-                  {t('incomeExpenses.cancel')}
-                </button>
-                <button
-                  type="button"
-                  className="rounded-lg border border-rose-300 px-3 py-1.5 text-sm text-rose-700 hover:bg-rose-50"
-                  onClick={handleDeleteIncome}
-                  data-testid="income-delete-entry-btn"
-                >
-                  {t('common.delete')}
-                </button>
-                <button
-                  type="submit"
-                  className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm text-white hover:bg-emerald-700"
-                >
-                  {t('incomeExpenses.save')}
-                </button>
+        <FormModal open onClose={() => setEditingEntry(null)} title={t('incomeExpenses.editIncome')}>
+          <form onSubmit={handleUpdateIncome} className="space-y-3">
+            <label className={fm.label}>
+              {t('incomeExpenses.name')}
+              <input type="text" name="name" defaultValue={editingEntry.row.name} className={`mt-1 ${fm.input}`} required />
+            </label>
+            <label className={fm.label}>
+              {t('incomeExpenses.amount')}
+              <div className="relative mt-1">
+                <span className={fm.amountEuroPrefix} aria-hidden>€</span>
+                <input type="text" name="amount" defaultValue={centsToEuroInput(editingEntry.row.amount_cents)} className={fm.inputWithEuroPrefix} placeholder="0.00" required />
               </div>
-            </form>
-          </div>
-        </div>
+            </label>
+            <label className={fm.label}>
+              {t('incomeExpenses.date')}
+              <input type="text" name="date" defaultValue={formatDateDMonYYYY(editingEntry.row.date)} className={`mt-1 ${fm.input}`} placeholder="e.g. 10 Mar 2025" />
+            </label>
+            <label className={fm.label}>
+              {t('incomeExpenses.tags')}
+              <input type="text" name="tags" defaultValue={tagsToString(editingEntry.row.tags)} className={`mt-1 ${fm.input}`} placeholder="tag1, tag2" />
+            </label>
+            <div className="flex gap-2 pt-2">
+              <button type="button" className={fm.btnSecondary} onClick={() => setEditingEntry(null)}>
+                {t('incomeExpenses.cancel')}
+              </button>
+              <button
+                type="button"
+                className={fm.btnDanger}
+                onClick={handleDeleteIncome}
+                data-testid="income-delete-entry-btn"
+              >
+                {t('common.delete')}
+              </button>
+              <button type="submit" className={fm.btnPrimaryEmerald}>
+                {t('incomeExpenses.save')}
+              </button>
+            </div>
+          </form>
+        </FormModal>
       )}
 
       {editingEntry?.type === 'expense' && editingEntry.row && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setEditingEntry(null)} aria-hidden />
-          <div className="relative w-full max-w-sm rounded-xl bg-white p-4 shadow-lg">
-            <h3 className="mb-3 text-lg font-semibold">{t('incomeExpenses.editExpense')}</h3>
-            <form onSubmit={handleUpdateExpense} className="space-y-3">
-              <label className="block text-sm font-medium">
-                {t('incomeExpenses.name')}
-                <input type="text" name="name" defaultValue={editingEntry.row.name} className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5" required />
-              </label>
-              <label className="block text-sm font-medium">
-                {t('incomeExpenses.amount')} (€)
-                <input type="text" name="amount" defaultValue={centsToEuroInput(editingEntry.row.amount_cents)} className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5" placeholder="0.00" required />
-              </label>
-              <label className="block text-sm font-medium">
-                {t('incomeExpenses.date')}
-                <input type="date" name="date" defaultValue={editingEntry.row.date} className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5" />
-              </label>
-              <label className="block text-sm font-medium">
-                {t('incomeExpenses.tags')}
-                <input type="text" name="tags" defaultValue={tagsToString(editingEntry.row.tags)} className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5" placeholder="tag1, tag2" />
-              </label>
-              <div className="flex gap-2 pt-2">
-                <button
-                  type="button"
-                  className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
-                  onClick={() => setEditingEntry(null)}
-                >
-                  {t('incomeExpenses.cancel')}
-                </button>
-                <button
-                  type="button"
-                  className="rounded-lg border border-rose-300 px-3 py-1.5 text-sm text-rose-700 hover:bg-rose-50"
-                  onClick={handleDeleteExpense}
-                  data-testid="expense-delete-entry-btn"
-                >
-                  {t('common.delete')}
-                </button>
-                <button
-                  type="submit"
-                  className="rounded-lg bg-rose-600 px-3 py-1.5 text-sm text-white hover:bg-rose-700"
-                >
-                  {t('incomeExpenses.save')}
-                </button>
+        <FormModal open onClose={() => setEditingEntry(null)} title={t('incomeExpenses.editExpense')}>
+          <form onSubmit={handleUpdateExpense} className="space-y-3">
+            <label className={fm.label}>
+              {t('incomeExpenses.name')}
+              <input type="text" name="name" defaultValue={editingEntry.row.name} className={`mt-1 ${fm.input}`} required />
+            </label>
+            <label className={fm.label}>
+              {t('incomeExpenses.amount')}
+              <div className="relative mt-1">
+                <span className={fm.amountEuroPrefix} aria-hidden>€</span>
+                <input type="text" name="amount" defaultValue={centsToEuroInput(editingEntry.row.amount_cents)} className={fm.inputWithEuroPrefix} placeholder="0.00" required />
               </div>
-            </form>
-          </div>
-        </div>
+            </label>
+            <label className={fm.label}>
+              {t('incomeExpenses.date')}
+              <input type="text" name="date" defaultValue={formatDateDMonYYYY(editingEntry.row.date)} className={`mt-1 ${fm.input}`} placeholder="e.g. 10 Mar 2025" />
+            </label>
+            <label className={fm.label}>
+              {t('incomeExpenses.tags')}
+              <input type="text" name="tags" defaultValue={tagsToString(editingEntry.row.tags)} className={`mt-1 ${fm.input}`} placeholder="tag1, tag2" />
+            </label>
+            <div className="flex gap-2 pt-2">
+              <button type="button" className={fm.btnSecondary} onClick={() => setEditingEntry(null)}>
+                {t('incomeExpenses.cancel')}
+              </button>
+              <button
+                type="button"
+                className={fm.btnDanger}
+                onClick={handleDeleteExpense}
+                data-testid="expense-delete-entry-btn"
+              >
+                {t('common.delete')}
+              </button>
+              <button type="submit" className={fm.btnPrimaryRose}>
+                {t('incomeExpenses.save')}
+              </button>
+            </div>
+          </form>
+        </FormModal>
       )}
 
       {showExport && (

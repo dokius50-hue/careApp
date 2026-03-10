@@ -64,6 +64,7 @@ Deno.serve(async (req: Request) => {
     const resendKey = Deno.env.get('RESEND_API_KEY');
     if (resendKey) {
       const html = renderHtml(body);
+      const fromAddress = Deno.env.get('REPORT_FROM_EMAIL') ?? 'reports@shopeto.org';
 
       const resendRes = await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -72,7 +73,7 @@ Deno.serve(async (req: Request) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: 'reports@caritasapp.local',
+          from: fromAddress,
           to: [body.to],
           subject: 'Caritas report',
           html,

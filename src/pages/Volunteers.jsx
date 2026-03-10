@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useOrg } from '../context/OrgContext.jsx';
 import { supabase } from '../lib/supabase.js';
 import ExportOverlay from '../components/ExportOverlay.jsx';
-import { formatDisplayDate, getLocalDateString } from '../lib/dates.js';
+import FormModal, { formModalClasses as fm } from '../components/FormModal.jsx';
+import { formatDisplayDate, formatDateDMonYYYY, getLocalDateString, parseDisplayDateToIso } from '../lib/dates.js';
 
 const VolunteersPage = () => {
   const { t } = useTranslation();
@@ -45,7 +46,7 @@ const VolunteersPage = () => {
     e.preventDefault();
     const form = e.target;
     const volunteerId = form.volunteer_id.value;
-    const date = form.date.value || getLocalDateString();
+    const date = parseDisplayDateToIso(form.date.value);
     const hours = parseFloat(form.hours.value);
     if (!volunteerId || !currentOrgId || Number.isNaN(hours) || hours <= 0) return;
     await supabase.from('volunteer_hours').insert({
@@ -63,7 +64,7 @@ const VolunteersPage = () => {
     if (!editingHours?.id) return;
     const form = e.target;
     const volunteerId = form.volunteer_id.value;
-    const date = form.date.value || getLocalDateString();
+    const date = parseDisplayDateToIso(form.date.value);
     const hours = parseFloat(form.hours.value);
     if (!volunteerId || Number.isNaN(hours) || hours <= 0) return;
     await supabase.from('volunteer_hours').update({ volunteer_id: volunteerId, date, hours }).eq('id', editingHours.id);
@@ -170,136 +171,117 @@ const VolunteersPage = () => {
       </section>
 
       {showAddHours && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setShowAddHours(false)} aria-hidden />
-          <div className="relative w-full max-w-sm rounded-xl bg-white p-4 shadow-lg">
-            <h3 className="mb-3 text-lg font-semibold">{t('volunteers.addHours')}</h3>
-            <form onSubmit={handleAddHours} className="space-y-3">
-              <label className="block text-sm font-medium">
-                {t('volunteers.volunteer')}
-                <select name="volunteer_id" className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5" required data-testid="add-hours-volunteer-select">
-                  <option value="">—</option>
-                  {volunteers.map((v) => (
-                    <option key={v.id} value={v.id}>{v.name}</option>
-                  ))}
-                </select>
-              </label>
-              <label className="block text-sm font-medium">
-                {t('volunteers.date')}
-                <input type="date" name="date" defaultValue={getLocalDateString()} className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5" />
-              </label>
-              <label className="block text-sm font-medium">
-                {t('volunteers.hours')}
-                <input type="number" name="hours" step="any" min="0" placeholder="0.0" className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5" required />
-              </label>
-              <div className="flex gap-2 pt-2">
-                <button type="button" className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm" onClick={() => setShowAddHours(false)}>
-                  {t('volunteers.cancel')}
-                </button>
-                <button type="submit" className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm text-white hover:bg-slate-800">
-                  {t('volunteers.save')}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <FormModal open onClose={() => setShowAddHours(false)} title={t('volunteers.addHours')}>
+          <form onSubmit={handleAddHours} className="space-y-3">
+            <label className={fm.label}>
+              {t('volunteers.volunteer')}
+              <select name="volunteer_id" className={`mt-1 ${fm.select}`} required data-testid="add-hours-volunteer-select">
+                <option value="">—</option>
+                {volunteers.map((v) => (
+                  <option key={v.id} value={v.id}>{v.name}</option>
+                ))}
+              </select>
+            </label>
+            <label className={fm.label}>
+              {t('volunteers.date')}
+              <input type="text" name="date" defaultValue={formatDateDMonYYYY(getLocalDateString())} className={`mt-1 ${fm.input}`} placeholder="e.g. 10 Mar 2025" />
+            </label>
+            <label className={fm.label}>
+              {t('volunteers.hours')}
+              <input type="number" name="hours" step="any" min="0" placeholder="0.0" className={`mt-1 ${fm.input}`} required />
+            </label>
+            <div className="flex gap-2 pt-2">
+              <button type="button" className={fm.btnSecondary} onClick={() => setShowAddHours(false)}>
+                {t('volunteers.cancel')}
+              </button>
+              <button type="submit" className={fm.btnPrimarySlate}>
+                {t('volunteers.save')}
+              </button>
+            </div>
+          </form>
+        </FormModal>
       )}
 
       {showManage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setShowManage(false)} aria-hidden />
-          <div className="relative w-full max-w-sm rounded-xl bg-white p-4 shadow-lg max-h-[80vh] overflow-y-auto">
-            <h3 className="mb-3 text-lg font-semibold">{t('volunteers.manageVolunteers')}</h3>
-            <form onSubmit={handleAddVolunteer} className="mb-4 flex gap-2">
-              <input
-                type="text"
-                value={newVolunteerName}
-                onChange={(e) => setNewVolunteerName(e.target.value)}
-                placeholder={t('volunteers.name')}
-                className="flex-1 rounded border border-slate-300 px-2 py-1.5 text-sm"
-                data-testid="manage-volunteer-name-input"
-              />
-              <button type="submit" className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm text-white hover:bg-slate-800" data-testid="manage-volunteer-add-btn">
-                {t('volunteers.addNew')}
-              </button>
-            </form>
-            {volunteers.length === 0 ? (
-              <p className="text-xs text-slate-500">{t('volunteers.noVolunteers')}</p>
-            ) : (
-              <ul className="space-y-2">
-                {volunteers.map((v) => (
-                  <li key={v.id} className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2">
-                    <span>{v.name}</span>
-                    <button
-                      type="button"
-                      className="text-xs text-rose-600 hover:underline"
-                      onClick={() => handleMarkInactive(v.id)}
-                      data-testid="volunteer-mark-inactive"
-                    >
-                      {t('volunteers.markInactive')}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <div className="mt-4">
-              <button type="button" className="w-full rounded-lg border border-slate-300 py-2 text-sm" onClick={() => setShowManage(false)}>
-                {t('volunteers.cancel')}
-              </button>
-            </div>
+        <FormModal open onClose={() => setShowManage(false)} title={t('volunteers.manageVolunteers')}>
+          <form onSubmit={handleAddVolunteer} className="mb-4 flex gap-2">
+            <input
+              type="text"
+              value={newVolunteerName}
+              onChange={(e) => setNewVolunteerName(e.target.value)}
+              placeholder={t('volunteers.name')}
+              className={`flex-1 ${fm.input}`}
+              data-testid="manage-volunteer-name-input"
+            />
+            <button type="submit" className={fm.btnPrimarySlate} data-testid="manage-volunteer-add-btn">
+              {t('volunteers.addNew')}
+            </button>
+          </form>
+          {volunteers.length === 0 ? (
+            <p className="text-xs text-slate-500">{t('volunteers.noVolunteers')}</p>
+          ) : (
+            <ul className="space-y-2">
+              {volunteers.map((v) => (
+                <li key={v.id} className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2">
+                  <span>{v.name}</span>
+                  <button
+                    type="button"
+                    className="text-xs text-rose-600 hover:underline"
+                    onClick={() => handleMarkInactive(v.id)}
+                    data-testid="volunteer-mark-inactive"
+                  >
+                    {t('volunteers.markInactive')}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <div className="mt-4">
+            <button type="button" className={`w-full ${fm.btnSecondary}`} onClick={() => setShowManage(false)}>
+              {t('volunteers.cancel')}
+            </button>
           </div>
-        </div>
+        </FormModal>
       )}
 
       {editingHours && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setEditingHours(null)} aria-hidden />
-          <div className="relative w-full max-w-sm rounded-xl bg-white p-4 shadow-lg">
-            <h3 className="mb-3 text-lg font-semibold">{t('volunteers.editHours')}</h3>
-            <form onSubmit={handleUpdateHours} className="space-y-3">
-              <label className="block text-sm font-medium">
-                {t('volunteers.volunteer')}
-                <select name="volunteer_id" defaultValue={editingHours.volunteer_id} className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5" required data-testid="edit-hours-volunteer-select">
-                  <option value="">—</option>
-                  {volunteers.map((v) => (
-                    <option key={v.id} value={v.id}>{v.name}</option>
-                  ))}
-                </select>
-              </label>
-              <label className="block text-sm font-medium">
-                {t('volunteers.date')}
-                <input type="date" name="date" defaultValue={editingHours.date} className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5" />
-              </label>
-              <label className="block text-sm font-medium">
-                {t('volunteers.hours')}
-                <input type="number" name="hours" step="any" min="0" defaultValue={Number(editingHours.hours)} placeholder="0.0" className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5" required />
-              </label>
-              <div className="flex gap-2 pt-2">
-                <button
-                  type="button"
-                  className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
-                  onClick={() => setEditingHours(null)}
-                >
-                  {t('volunteers.cancel')}
-                </button>
-                <button
-                  type="button"
-                  className="rounded-lg border border-rose-300 px-3 py-1.5 text-sm text-rose-700 hover:bg-rose-50"
-                  onClick={handleDeleteHours}
-                  data-testid="volunteers-delete-hours-btn"
-                >
-                  {t('common.delete')}
-                </button>
-                <button
-                  type="submit"
-                  className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm text-white hover:bg-slate-800"
-                >
-                  {t('volunteers.save')}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <FormModal open onClose={() => setEditingHours(null)} title={t('volunteers.editHours')}>
+          <form onSubmit={handleUpdateHours} className="space-y-3">
+            <label className={fm.label}>
+              {t('volunteers.volunteer')}
+              <select name="volunteer_id" defaultValue={editingHours.volunteer_id} className={`mt-1 ${fm.select}`} required data-testid="edit-hours-volunteer-select">
+                <option value="">—</option>
+                {volunteers.map((v) => (
+                  <option key={v.id} value={v.id}>{v.name}</option>
+                ))}
+              </select>
+            </label>
+            <label className={fm.label}>
+              {t('volunteers.date')}
+              <input type="text" name="date" defaultValue={formatDateDMonYYYY(editingHours.date)} className={`mt-1 ${fm.input}`} placeholder="e.g. 10 Mar 2025" />
+            </label>
+            <label className={fm.label}>
+              {t('volunteers.hours')}
+              <input type="number" name="hours" step="any" min="0" defaultValue={Number(editingHours.hours)} placeholder="0.0" className={`mt-1 ${fm.input}`} required />
+            </label>
+            <div className="flex gap-2 pt-2">
+              <button type="button" className={fm.btnSecondary} onClick={() => setEditingHours(null)}>
+                {t('volunteers.cancel')}
+              </button>
+              <button
+                type="button"
+                className={fm.btnDanger}
+                onClick={handleDeleteHours}
+                data-testid="volunteers-delete-hours-btn"
+              >
+                {t('common.delete')}
+              </button>
+              <button type="submit" className={fm.btnPrimarySlate}>
+                {t('volunteers.save')}
+              </button>
+            </div>
+          </form>
+        </FormModal>
       )}
 
       {showExport && <ExportOverlay onClose={() => setShowExport(false)} context="volunteers" />}
