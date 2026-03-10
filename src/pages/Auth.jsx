@@ -3,27 +3,59 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useTranslation } from 'react-i18next';
 
 const AuthPage = () => {
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, setJustRegistered, resetPasswordForEmail, signInWithOtp } = useAuth();
   const { t } = useTranslation();
   const [mode, setMode] = useState('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotError, setForgotError] = useState('');
+  const [forgotSuccess, setForgotSuccess] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    const fn = mode === 'signin' ? signIn : signUp;
-    const { error: authError } = await fn({ email, password });
-
-    if (authError) {
-      setError(authError.message);
+    if (mode === 'signin') {
+      const { error: authError } = await signIn({ email, password });
+      if (authError) setError(authError.message);
+    } else {
+      const { data, error: authError } = await signUp({ email, password });
+      if (authError) {
+        setError(authError.message);
+      } else {
+        if (!data?.session) await signIn({ email, password });
+        setJustRegistered(true);
+      }
     }
 
     setLoading(false);
+  };
+
+  const handleForgotSubmit = async (action) => {
+    const emailToUse = forgotEmail.trim() || email.trim();
+    if (!emailToUse) {
+      setForgotError(t('auth.forgotEmailRequired'));
+      return;
+    }
+    setForgotError('');
+    setForgotSuccess('');
+    setForgotLoading(true);
+    if (action === 'reset') {
+      const { error: err } = await resetPasswordForEmail(emailToUse);
+      if (err) setForgotError(err.message);
+      else setForgotSuccess(t('auth.forgotResetSent'));
+    } else {
+      const { error: err } = await signInWithOtp({ email: emailToUse });
+      if (err) setForgotError(err.message);
+      else setForgotSuccess(t('auth.forgotMagicLinkSent'));
+    }
+    setForgotLoading(false);
   };
 
   const features = [
@@ -61,66 +93,123 @@ const AuthPage = () => {
           <h1 className="text-2xl font-bold text-center text-slate-900 font-auth">
             {t('app.title')}
           </h1>
-          <div className="flex gap-2 text-sm" role="tablist">
-            <button
-              type="button"
-              className={`flex-1 py-2.5 rounded-full border transition-all ${
-                mode === 'signin'
-                  ? 'bg-gradient-to-r from-auth-teal to-auth-violet text-white border-transparent shadow-md'
-                  : 'border-white/60 bg-white/50 text-slate-600 hover:bg-white/70'
-              }`}
-              onClick={() => setMode('signin')}
-            >
-              {t('auth.signIn')}
-            </button>
-            <button
-              type="button"
-              className={`flex-1 py-2.5 rounded-full border transition-all ${
-                mode === 'signup'
-                  ? 'bg-gradient-to-r from-auth-teal to-auth-violet text-white border-transparent shadow-md'
-                  : 'border-white/60 bg-white/50 text-slate-600 hover:bg-white/70'
-              }`}
-              onClick={() => setMode('signup')}
-            >
-              {t('auth.signUp')}
-            </button>
-          </div>
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <div className="space-y-1">
-              <label className="block text-xs font-medium text-slate-600" htmlFor="email">
-                {t('auth.email')}
-              </label>
-              <input
-                id="email"
-                type="email"
-                className="w-full rounded-lg border border-white/60 bg-white/60 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-auth-teal/50 focus:border-auth-teal shadow-sm"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+          {showForgotPassword ? (
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold text-slate-800">{t('auth.forgotTitle')}</h2>
+              <div className="space-y-1">
+                <label className="block text-xs font-medium text-slate-600" htmlFor="forgot-email">
+                  {t('auth.email')}
+                </label>
+                <input
+                  id="forgot-email"
+                  type="email"
+                  className="w-full rounded-lg border border-white/60 bg-white/60 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-auth-teal/50 focus:border-auth-teal shadow-sm"
+                  value={forgotEmail || email}
+                  onChange={(e) => setForgotEmail(e.target.value)}
+                  placeholder={t('auth.email')}
+                />
+              </div>
+              {forgotError && <p className="text-xs text-rose-600">{forgotError}</p>}
+              {forgotSuccess && <p className="text-xs text-emerald-600">{forgotSuccess}</p>}
+              <div className="flex flex-col gap-2">
+                <button
+                  type="button"
+                  className="w-full py-2.5 rounded-full bg-gradient-to-r from-auth-teal to-auth-violet text-white text-sm font-semibold disabled:opacity-60 hover:brightness-110 transition-all shadow-md"
+                  disabled={forgotLoading}
+                  onClick={() => handleForgotSubmit('reset')}
+                >
+                  {forgotLoading ? t('auth.loading') : t('auth.forgotResetPassword')}
+                </button>
+                <button
+                  type="button"
+                  className="w-full py-2.5 rounded-full border border-auth-teal/60 text-auth-teal text-sm font-semibold disabled:opacity-60 hover:bg-auth-teal/10 transition-all"
+                  disabled={forgotLoading}
+                  onClick={() => handleForgotSubmit('magic')}
+                >
+                  {t('auth.forgotMagicLink')}
+                </button>
+              </div>
+              <button
+                type="button"
+                className="w-full text-sm text-slate-600 hover:text-slate-800"
+                onClick={() => { setShowForgotPassword(false); setForgotError(''); setForgotSuccess(''); }}
+              >
+                {t('auth.forgotBack')}
+              </button>
             </div>
-            <div className="space-y-1">
-              <label className="block text-xs font-medium text-slate-600" htmlFor="password">
-                {t('auth.password')}
-              </label>
-              <input
-                id="password"
-                type="password"
-                className="w-full rounded-lg border border-white/60 bg-white/60 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-auth-teal/50 focus:border-auth-teal shadow-sm"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            {error && <p className="text-xs text-rose-600">{error}</p>}
-            <button
-              type="submit"
-              className="w-full py-2.5 rounded-full bg-gradient-to-r from-auth-teal to-auth-violet text-white text-sm font-semibold disabled:opacity-60 hover:brightness-110 transition-all shadow-md"
-              disabled={loading}
-            >
-              {loading ? t('auth.loading') : mode === 'signin' ? t('auth.signIn') : t('auth.signUp')}
-            </button>
-          </form>
+          ) : (
+            <>
+              <div className="flex gap-2 text-sm" role="tablist">
+                <button
+                  type="button"
+                  className={`flex-1 py-2.5 rounded-full border transition-all ${
+                    mode === 'signin'
+                      ? 'bg-gradient-to-r from-auth-teal to-auth-violet text-white border-transparent shadow-md'
+                      : 'border-white/60 bg-white/50 text-slate-600 hover:bg-white/70'
+                  }`}
+                  onClick={() => setMode('signin')}
+                >
+                  {t('auth.signIn')}
+                </button>
+                <button
+                  type="button"
+                  className={`flex-1 py-2.5 rounded-full border transition-all ${
+                    mode === 'signup'
+                      ? 'bg-gradient-to-r from-auth-teal to-auth-violet text-white border-transparent shadow-md'
+                      : 'border-white/60 bg-white/50 text-slate-600 hover:bg-white/70'
+                  }`}
+                  onClick={() => setMode('signup')}
+                >
+                  {t('auth.signUp')}
+                </button>
+              </div>
+              <form onSubmit={handleSubmit} className="space-y-3">
+                <div className="space-y-1">
+                  <label className="block text-xs font-medium text-slate-600" htmlFor="email">
+                    {t('auth.email')}
+                  </label>
+                  <input
+                    id="email"
+                    type="email"
+                    className="w-full rounded-lg border border-white/60 bg-white/60 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-auth-teal/50 focus:border-auth-teal shadow-sm"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="block text-xs font-medium text-slate-600" htmlFor="password">
+                    {t('auth.password')}
+                  </label>
+                  <input
+                    id="password"
+                    type="password"
+                    className="w-full rounded-lg border border-white/60 bg-white/60 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-auth-teal/50 focus:border-auth-teal shadow-sm"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </div>
+                {error && <p className="text-xs text-rose-600">{error}</p>}
+                <button
+                  type="submit"
+                  className="w-full py-2.5 rounded-full bg-gradient-to-r from-auth-teal to-auth-violet text-white text-sm font-semibold disabled:opacity-60 hover:brightness-110 transition-all shadow-md"
+                  disabled={loading}
+                >
+                  {loading ? t('auth.loading') : mode === 'signin' ? t('auth.signIn') : t('auth.signUp')}
+                </button>
+                {mode === 'signin' && (
+                  <button
+                    type="button"
+                    className="w-full text-xs text-slate-600 hover:text-auth-teal"
+                    onClick={() => { setForgotEmail(email); setShowForgotPassword(true); }}
+                  >
+                    {t('auth.forgotPassword')}
+                  </button>
+                )}
+              </form>
+            </>
+          )}
         </div>
       </section>
 

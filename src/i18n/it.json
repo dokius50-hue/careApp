@@ -15,7 +15,28 @@
     "signUp": "Registrati",
     "email": "Email",
     "password": "Password",
-    "loading": "..."
+    "loading": "...",
+    "forgotPassword": "Password dimenticata?",
+    "forgotTitle": "Reimposta o accedi con un link",
+    "forgotEmailRequired": "Inserisci il tuo indirizzo email.",
+    "forgotResetPassword": "Reimposta la mia password",
+    "forgotMagicLink": "Invia un link di accesso monouso",
+    "forgotBack": "Torna all'accesso",
+    "forgotResetSent": "Controlla la tua email per impostare una nuova password.",
+    "forgotMagicLinkSent": "Controlla la tua email per il link di accesso (valido 1 ora)."
+  },
+  "welcome": {
+    "title": "Benvenuto su Shopeto.",
+    "forgotHint": "Se dimentichi la password ti invieremo un link di accesso a {{email}}",
+    "continue": "Continua"
+  },
+  "updatePassword": {
+    "title": "Imposta nuova password",
+    "newPassword": "Nuova password",
+    "confirmPassword": "Conferma password",
+    "submit": "Aggiorna password",
+    "mismatch": "Le password non coincidono.",
+    "tooShort": "La password deve avere almeno 6 caratteri."
   },
   "authLanding": {
     "tagline": "Gestione negozio solidale, semplificata",

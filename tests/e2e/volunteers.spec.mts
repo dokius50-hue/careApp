@@ -26,8 +26,9 @@ test('add volunteer and add hours; assert they appear in history and in Add Hour
   await page.getByRole('dialog', { name: 'Add Hours' }).getByRole('button', { name: 'Save' }).click();
   await page.waitForTimeout(800);
 
-  await expect(page.getByTestId('volunteer-hours-entry').filter({ hasText: volunteerName })).toBeVisible();
-  await expect(page.getByTestId('volunteer-hours-entry').filter({ hasText: '2.5' })).toBeVisible();
+  const entryWithName = page.getByTestId('volunteer-hours-entry').filter({ hasText: volunteerName });
+  await expect(entryWithName).toBeVisible();
+  await expect(entryWithName.filter({ hasText: '2.5' })).toBeVisible();
 
   await page.getByTestId('volunteers-add-hours-btn').click();
   await expect(page.getByTestId('add-hours-volunteer-select')).toBeVisible();

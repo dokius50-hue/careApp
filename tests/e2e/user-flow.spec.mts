@@ -1,32 +1,21 @@
 import { test, expect } from '@playwright/test';
-import { filterBenignConsoleErrors } from './console-helper.mts';
+import { captureConsoleAndNetwork } from './console-helper.mts';
 
 test('user flow: load app and see auth or main UI', async ({ page }) => {
-  const consoleErrors: string[] = [];
-  page.on('console', (msg) => {
-    if (msg.type() === 'error') consoleErrors.push(msg.text());
-  });
-
+  const capture = captureConsoleAndNetwork(page);
   await page.goto('/');
 
   await expect(page).toHaveTitle(/CaritasApp/);
-
   await expect(page.locator('body')).toBeVisible();
-
   await expect(
     page.getByText(/loading/i).or(page.getByText(/create organisation|organisation name/i)).or(page.getByText(/today/i)).or(page.getByText('Sign in').first())
   ).toBeVisible({ timeout: 10000 });
 
-  const relevant = filterBenignConsoleErrors(consoleErrors);
-  expect(relevant, 'No console errors on load (excluding benign network errors)').toHaveLength(0);
+  capture.assertNoRelevantErrors();
 });
 
 test('user flow: sign up, create org, see home or stay on auth when confirmation required', async ({ page }) => {
-  const consoleErrors: string[] = [];
-  page.on('console', (msg) => {
-    if (msg.type() === 'error') consoleErrors.push(msg.text());
-  });
-
+  const capture = captureConsoleAndNetwork(page);
   await page.goto('/');
 
   const signUpBtn = page.getByRole('button', { name: /sign up/i });
@@ -37,6 +26,12 @@ test('user flow: sign up, create org, see home or stay on auth when confirmation
     await page.getByLabel(/password/i).fill('TestPassword123!');
     await page.locator('form').getByRole('button', { name: /sign up/i }).click();
     await page.waitForTimeout(3000);
+    // Post-registration welcome: click Continue to proceed
+    const continueBtn = page.getByRole('button', { name: /continue/i });
+    if (await continueBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await continueBtn.click();
+      await page.waitForTimeout(1500);
+    }
   }
 
   const createOrgHeading = page.getByText(/create organisation|organisation name/i);
@@ -55,6 +50,20 @@ test('user flow: sign up, create org, see home or stay on auth when confirmation
     await expect(nav).toBeVisible();
   }
 
-  const relevant = filterBenignConsoleErrors(consoleErrors);
-  expect(relevant, 'No console errors during user flow (excluding benign network errors)').toHaveLength(0);
+  capture.assertNoRelevantErrors();
+});
+
+test('auth: forgot password subview shows reset and magic link options', async ({ page }) => {
+  const capture = captureConsoleAndNetwork(page);
+  await page.goto('/');
+  const signInBtn = page.getByRole('button', { name: /sign in/i }).first();
+  await expect(signInBtn).toBeVisible({ timeout: 10000 });
+  await signInBtn.click();
+  await page.getByRole('button', { name: /forgot password/i }).click();
+  await expect(page.getByText(/reset or sign in with a link|reimposta o accedi/i)).toBeVisible({ timeout: 3000 });
+  await expect(page.getByRole('button', { name: /reset my password|reimposta la mia password/i })).toBeVisible();
+  await expect(page.getByRole('button', { name: /send me a one-time|invia un link di accesso/i })).toBeVisible();
+  await page.getByRole('button', { name: /back to sign in|torna all'accesso/i }).click();
+  await expect(page.getByRole('button', { name: /sign in/i }).first()).toBeVisible();
+  capture.assertNoRelevantErrors();
 });

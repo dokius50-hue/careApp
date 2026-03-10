@@ -1,10 +1,12 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from './context/AuthContext.jsx';
 import { useOrg } from './context/OrgContext.jsx';
 import BottomNav from './components/BottomNav.jsx';
 import AuthPage from './pages/Auth.jsx';
+import WelcomePage from './pages/WelcomePage.jsx';
+import UpdatePasswordPage from './pages/UpdatePasswordPage.jsx';
 import CreateOrganisationPage from './pages/CreateOrganisation.jsx';
 import HomePage from './pages/Home.jsx';
 import IncomeExpensesPage from './pages/IncomeExpenses.jsx';
@@ -21,7 +23,8 @@ const AppShell = ({ children }) => (
 
 const App = () => {
   const { t } = useTranslation();
-  const { user, loading: authLoading } = useAuth();
+  const { pathname } = useLocation();
+  const { user, loading: authLoading, justRegistered } = useAuth();
   const { orgs, currentOrgId, loading: orgLoading } = useOrg();
 
   if (authLoading) {
@@ -34,6 +37,14 @@ const App = () => {
 
   if (!user) {
     return <AuthPage />;
+  }
+
+  if (justRegistered) {
+    return <WelcomePage />;
+  }
+
+  if (pathname === '/update-password') {
+    return <UpdatePasswordPage />;
   }
 
   if (!orgLoading && orgs.length === 0) {

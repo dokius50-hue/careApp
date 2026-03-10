@@ -15,7 +15,28 @@
     "signUp": "Sign up",
     "email": "Email",
     "password": "Password",
-    "loading": "..."
+    "loading": "...",
+    "forgotPassword": "Forgot password?",
+    "forgotTitle": "Reset or sign in with a link",
+    "forgotEmailRequired": "Please enter your email address.",
+    "forgotResetPassword": "Reset my password",
+    "forgotMagicLink": "Send me a one-time sign-in link",
+    "forgotBack": "Back to sign in",
+    "forgotResetSent": "Check your email to set a new password.",
+    "forgotMagicLinkSent": "Check your email for a sign-in link (valid for 1 hour)."
+  },
+  "welcome": {
+    "title": "Welcome to Shopeto.",
+    "forgotHint": "If you forget your password we'll send you a login link at {{email}}",
+    "continue": "Continue"
+  },
+  "updatePassword": {
+    "title": "Set new password",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm password",
+    "submit": "Update password",
+    "mismatch": "Passwords do not match.",
+    "tooShort": "Password must be at least 6 characters."
   },
   "authLanding": {
     "tagline": "Charity shop management, simplified",
