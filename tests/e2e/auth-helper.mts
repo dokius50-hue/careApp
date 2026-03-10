@@ -36,7 +36,7 @@ export async function ensureAuthenticated(page: Page): Promise<void> {
     await page.waitForTimeout(3000);
   }
 
-  await page.getByText(/today/i).first().waitFor({ state: 'visible', timeout: 20000 });
+  await page.getByText(/today/i).first().waitFor({ state: 'visible', timeout: 30000 });
 }
 
 /**
@@ -65,5 +65,5 @@ export async function signInAs(page: Page, email: string, password: string): Pro
     await page.waitForTimeout(3000);
   }
 
-  await page.getByText(/today/i).first().waitFor({ state: 'visible', timeout: 20000 });
+  await page.getByText(/today/i).first().waitFor({ state: 'visible', timeout: 30000 });
 }

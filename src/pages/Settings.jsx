@@ -9,7 +9,8 @@ import CreateOrgModal from '../components/CreateOrgModal.jsx';
 const FONT_SIZE_KEY = 'caritas_font_size';
 
 const SettingsPage = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language || i18n.resolvedLanguage || 'en';
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const { orgs, currentOrgId, setCurrentOrgId, refetchOrgs } = useOrg();
@@ -115,8 +116,24 @@ const SettingsPage = () => {
 
       <section>
         <h2 className="text-sm font-medium text-slate-700">{t('settings.language')}</h2>
-        <p className="text-sm text-slate-600">{t('settings.languageEnglish')}</p>
-        <p className="text-xs text-slate-500">{t('settings.languageItalian')}</p>
+        <div className="mt-2 flex gap-2">
+          <button
+            type="button"
+            className={`rounded-lg px-3 py-1.5 text-sm ${lang === 'en' ? 'bg-slate-900 text-white' : 'border border-slate-300 text-slate-700'}`}
+            onClick={() => i18n.changeLanguage('en')}
+            data-testid="lang-en"
+          >
+            {t('settings.languageEnglish')}
+          </button>
+          <button
+            type="button"
+            className={`rounded-lg px-3 py-1.5 text-sm ${lang === 'it' ? 'bg-slate-900 text-white' : 'border border-slate-300 text-slate-700'}`}
+            onClick={() => i18n.changeLanguage('it')}
+            data-testid="lang-it"
+          >
+            {t('settings.languageItalian')}
+          </button>
+        </div>
       </section>
 
       <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">

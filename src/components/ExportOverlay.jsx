@@ -26,16 +26,16 @@ const SECTION_KEYS = {
   home: ['incomeSummary', 'expenseSummary', 'incomeEntries', 'expenseEntries', 'bankSummary', 'bankTransactions', 'volunteerHoursSummary', 'hoursByVolunteer']
 };
 
-const PrintReport = ({ orgName, dateFrom, dateTo, generatedAt, reportData, labels }) => {
+const PrintReport = ({ orgName, dateFrom, dateTo, generatedAt, reportData, labels, locale = 'en' }) => {
   const l = labels || {};
-  const fromLabel = formatDisplayDate(dateFrom);
-  const toLabel = formatDisplayDate(dateTo);
+  const fromLabel = formatDisplayDate(dateFrom, locale);
+  const toLabel = formatDisplayDate(dateTo, locale);
   return (
     <div className="bg-white p-6 text-black" style={{ width: '210mm', minHeight: '297mm', fontFamily: 'sans-serif' }}>
       <header className="border-b pb-2 mb-4">
         <h1 className="text-lg font-bold">{orgName}</h1>
         <p className="text-sm text-slate-600">{l.reportSubtitle?.replace('{{from}}', fromLabel).replace('{{to}}', toLabel) ?? `Export Report — ${fromLabel} to ${toLabel}`}</p>
-        <p className="text-xs text-slate-500">{l.generated ?? 'Generated'}: {formatDisplayDateTime(generatedAt)}</p>
+        <p className="text-xs text-slate-500">{l.generated ?? 'Generated'}: {formatDisplayDateTime(generatedAt, locale)}</p>
       </header>
       {reportData?.incomeSummary && (
         <section className="mb-4">
@@ -61,7 +61,7 @@ const PrintReport = ({ orgName, dateFrom, dateTo, generatedAt, reportData, label
               {reportData.incomeEntries.map((row) => (
                 <tr key={row.id} className="border-b">
                   <td className="py-1">{row.name}</td>
-                  <td className="py-1">{formatDisplayDate(row.date)}</td>
+                  <td className="py-1">{formatDisplayDate(row.date, locale)}</td>
                   <td className="py-1 text-right">{formatEuro(row.amount_cents)}</td>
                 </tr>
               ))}
@@ -93,7 +93,7 @@ const PrintReport = ({ orgName, dateFrom, dateTo, generatedAt, reportData, label
               {reportData.expenseEntries.map((row) => (
                 <tr key={row.id} className="border-b">
                   <td className="py-1">{row.name}</td>
-                  <td className="py-1">{formatDisplayDate(row.date)}</td>
+                  <td className="py-1">{formatDisplayDate(row.date, locale)}</td>
                   <td className="py-1 text-right">{formatEuro(row.amount_cents)}</td>
                 </tr>
               ))}
@@ -133,9 +133,9 @@ const PrintReport = ({ orgName, dateFrom, dateTo, generatedAt, reportData, label
             <tbody>
               {reportData.bankTransactions.map((row) => (
                 <tr key={row.id} className="border-b">
-                  <td className="py-1">{formatDisplayDate(row.date)}</td>
+                  <td className="py-1">{formatDisplayDate(row.date, locale)}</td>
                   <td className="py-1">{row.note || '—'}</td>
-                  <td className="py-1 text-right">{row.type}</td>
+                  <td className="py-1 text-right">{row.type === 'deposit' ? (l.deposit ?? 'Deposit') : (l.withdrawal ?? 'Withdrawal')}</td>
                   <td className="py-1 text-right">{row.type === 'deposit' ? '+' : '−'}{formatEuro(row.amount_cents)}</td>
                 </tr>
               ))}
@@ -175,7 +175,8 @@ const PrintReport = ({ orgName, dateFrom, dateTo, generatedAt, reportData, label
 };
 
 const ExportOverlay = ({ onClose, context }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language || i18n.resolvedLanguage || 'en';
   const { currentOrgId, orgs } = useOrg();
   const [dateFrom, setDateFrom] = useState(firstDayOfMonth());
   const [dateTo, setDateTo] = useState(lastDayOfMonth());
@@ -444,13 +445,19 @@ const ExportOverlay = ({ onClose, context }) => {
           amount: t('exportPdf.amount'),
           note: t('exportPdf.note'),
           type: t('exportPdf.type'),
+          deposit: t('exportPdf.deposit'),
+          withdrawal: t('exportPdf.withdrawal'),
           volunteer: t('exportPdf.volunteer'),
           hours: t('exportPdf.hours'),
           generated: t('exportPdf.generated'),
           reportSubtitle: t('exportPdf.reportSubtitle', { from: dateFrom, to: dateTo }),
           totalHoursInRange: payload.reportData?.volunteerHoursSummary
             ? t('exportPdf.totalHoursInRange', { hours: payload.reportData.volunteerHoursSummary.totalHours.toFixed(1) })
-            : t('exportPdf.totalHoursInRange', { hours: '0' })
+            : t('exportPdf.totalHoursInRange', { hours: '0' }),
+          incomeSummaryTotal: t('exportPdf.incomeSummaryTotal'),
+          expenseSummaryTotal: t('exportPdf.expenseSummaryTotal'),
+          bankSummaryStart: t('exportPdf.bankSummaryStart'),
+          bankSummaryEnd: t('exportPdf.bankSummaryEnd')
         };
         setReportData({ ...payload, labels });
         setTimeout(() => {
@@ -618,6 +625,7 @@ const ExportOverlay = ({ onClose, context }) => {
                 generatedAt={reportData.generatedAt}
                 reportData={reportData.reportData}
                 labels={reportData.labels}
+                locale={locale}
               />
             )}
           </div>

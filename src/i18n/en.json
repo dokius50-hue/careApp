@@ -63,7 +63,8 @@
   },
   "common": {
     "noDataYet": "No data yet.",
-    "delete": "Delete"
+    "delete": "Delete",
+    "datePlaceholder": "e.g. 10 Mar 2025"
   },
   "exportPdf": {
     "reportTitle": "Export Report",
@@ -74,9 +75,15 @@
     "amount": "Amount",
     "note": "Note",
     "type": "Type",
+    "deposit": "Deposit",
+    "withdrawal": "Withdrawal",
     "volunteer": "Volunteer",
     "hours": "Hours",
     "totalHoursInRange": "Total hours in range: {{hours}} h",
+    "incomeSummaryTotal": "Total income in period",
+    "expenseSummaryTotal": "Total expenses in period",
+    "bankSummaryStart": "Balance at start of period",
+    "bankSummaryEnd": "Balance at end of period",
     "organisation": "Organisation"
   },
   "incomeExpenses": {
@@ -172,7 +179,7 @@
     "fontSizeLarge": "Large",
     "language": "Language",
     "languageEnglish": "English",
-    "languageItalian": "Italian (Coming soon)",
+    "languageItalian": "Italiano",
     "organisation": "Organisation",
     "createOrg": "Create organisation",
     "createOrgHint": "Create an organisation to get started, or switch to one you belong to.",

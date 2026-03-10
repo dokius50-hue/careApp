@@ -20,15 +20,16 @@ test('add volunteer and add hours; assert they appear in history and in Add Hour
 
   await page.getByTestId('volunteers-add-hours-btn').click();
   await expect(page.getByTestId('add-hours-volunteer-select')).toBeVisible();
-  await expect(page.getByTestId('add-hours-volunteer-select').locator(`option:has-text("${volunteerName}")`)).toBeVisible({ timeout: 10000 });
-  await page.getByTestId('add-hours-volunteer-select').selectOption({ label: volunteerName });
-  await page.getByLabel(/hours/i).fill('2.5');
-  await page.locator('form').getByRole('button', { name: /save/i }).click();
+  await page.waitForTimeout(500);
+  await page.getByTestId('add-hours-volunteer-select').selectOption({ label: volunteerName }, { timeout: 10000 });
+  await page.getByRole('dialog', { name: 'Add Hours' }).locator('input[name="hours"]').fill('2.5');
+  await page.getByRole('dialog', { name: 'Add Hours' }).getByRole('button', { name: 'Save' }).click();
   await page.waitForTimeout(800);
 
   await expect(page.getByTestId('volunteer-hours-entry').filter({ hasText: volunteerName })).toBeVisible();
   await expect(page.getByTestId('volunteer-hours-entry').filter({ hasText: '2.5' })).toBeVisible();
 
   await page.getByTestId('volunteers-add-hours-btn').click();
-  await expect(page.getByTestId('add-hours-volunteer-select').locator(`option:has-text("${volunteerName}")`)).toBeVisible();
+  await expect(page.getByTestId('add-hours-volunteer-select')).toBeVisible();
+  await page.getByTestId('add-hours-volunteer-select').selectOption({ label: volunteerName });
 });

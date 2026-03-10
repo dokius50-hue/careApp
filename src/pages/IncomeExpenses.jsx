@@ -18,7 +18,8 @@ const tagsToString = (arr) => (Array.isArray(arr) ? arr.join(', ') : '');
 const centsToEuroInput = (cents) => (cents != null ? (Number(cents) / 100).toFixed(2) : '');
 
 const IncomeExpensesPage = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language || i18n.resolvedLanguage || 'en';
   const { currentOrgId } = useOrg();
   const { user } = useAuth();
   const [incomeList, setIncomeList] = useState([]);
@@ -211,7 +212,7 @@ const IncomeExpensesPage = () => {
                     data-testid="income-entry"
                   >
                     <span className="font-medium">{row.name}</span>
-                    <span className="text-slate-500">{formatDisplayDate(row.date)}</span>
+                    <span className="text-slate-500">{formatDisplayDate(row.date, locale)}</span>
                     <span className="font-medium text-emerald-700">{formatEuro(row.amount_cents)}</span>
                   </button>
                 </li>
@@ -234,7 +235,7 @@ const IncomeExpensesPage = () => {
                     data-testid="expense-entry"
                   >
                     <span className="font-medium">{row.name}</span>
-                    <span className="text-slate-500">{formatDisplayDate(row.date)}</span>
+                    <span className="text-slate-500">{formatDisplayDate(row.date, locale)}</span>
                     <span className="font-medium text-rose-700">{formatEuro(row.amount_cents)}</span>
                   </button>
                 </li>
@@ -260,7 +261,7 @@ const IncomeExpensesPage = () => {
             </label>
             <label className={fm.label}>
               {t('incomeExpenses.date')}
-              <input type="text" name="date" defaultValue={formatDateDMonYYYY(getLocalDateString())} className={`mt-1 ${fm.input}`} placeholder="e.g. 10 Mar 2025" />
+              <input type="text" name="date" defaultValue={formatDateDMonYYYY(getLocalDateString(), locale)} className={`mt-1 ${fm.input}`} placeholder={t('common.datePlaceholder')} />
             </label>
             <label className={fm.label}>
               {t('incomeExpenses.tags')}
@@ -294,7 +295,7 @@ const IncomeExpensesPage = () => {
             </label>
             <label className={fm.label}>
               {t('incomeExpenses.date')}
-              <input type="text" name="date" defaultValue={formatDateDMonYYYY(getLocalDateString())} className={`mt-1 ${fm.input}`} placeholder="e.g. 10 Mar 2025" />
+              <input type="text" name="date" defaultValue={formatDateDMonYYYY(getLocalDateString(), locale)} className={`mt-1 ${fm.input}`} placeholder={t('common.datePlaceholder')} />
             </label>
             <label className={fm.label}>
               {t('incomeExpenses.tags')}
@@ -328,7 +329,7 @@ const IncomeExpensesPage = () => {
             </label>
             <label className={fm.label}>
               {t('incomeExpenses.date')}
-              <input type="text" name="date" defaultValue={formatDateDMonYYYY(editingEntry.row.date)} className={`mt-1 ${fm.input}`} placeholder="e.g. 10 Mar 2025" />
+              <input type="text" name="date" defaultValue={formatDateDMonYYYY(editingEntry.row.date, locale)} className={`mt-1 ${fm.input}`} placeholder={t('common.datePlaceholder')} />
             </label>
             <label className={fm.label}>
               {t('incomeExpenses.tags')}
@@ -370,7 +371,7 @@ const IncomeExpensesPage = () => {
             </label>
             <label className={fm.label}>
               {t('incomeExpenses.date')}
-              <input type="text" name="date" defaultValue={formatDateDMonYYYY(editingEntry.row.date)} className={`mt-1 ${fm.input}`} placeholder="e.g. 10 Mar 2025" />
+              <input type="text" name="date" defaultValue={formatDateDMonYYYY(editingEntry.row.date, locale)} className={`mt-1 ${fm.input}`} placeholder={t('common.datePlaceholder')} />
             </label>
             <label className={fm.label}>
               {t('incomeExpenses.tags')}

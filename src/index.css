@@ -18,3 +18,14 @@ body {
   @apply bg-slate-50 text-slate-900;
 }
 
+/* Optional: auth page gradient shimmer (use on auth route wrapper if desired) */
+@keyframes auth-gradient-shift {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.92;
+  }
+}
+

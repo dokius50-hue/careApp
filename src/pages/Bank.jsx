@@ -8,7 +8,8 @@ import { formatDisplayDate, formatDateDMonYYYY, formatDisplayMonthYear, getLocal
 import { formatEuro, parseEuroToCents } from '../lib/money.js';
 
 const BankPage = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language || i18n.resolvedLanguage || 'en';
   const { currentOrgId } = useOrg();
   const [bankAccount, setBankAccount] = useState(null);
   const [transactions, setTransactions] = useState([]);
@@ -113,7 +114,7 @@ const BankPage = () => {
   const centsToEuroInput = (cents) => (cents != null ? (Number(cents) / 100).toFixed(2) : '');
 
   const groupedByMonth = transactions.reduce((acc, tx) => {
-    const key = formatDisplayMonthYear(tx.date);
+    const key = formatDisplayMonthYear(tx.date, locale);
     if (!acc[key]) acc[key] = [];
     acc[key].push(tx);
     return acc;
@@ -184,7 +185,7 @@ const BankPage = () => {
                           >
                             <span className="font-medium">{tx.type === 'deposit' ? '+' : '−'}</span>
                             <span className="flex-1 truncate px-2 text-slate-700">{tx.note || '—'}</span>
-                            <span className="text-slate-500">{formatDisplayDate(tx.date)}</span>
+                            <span className="text-slate-500">{formatDisplayDate(tx.date, locale)}</span>
                             <span className={tx.type === 'deposit' ? 'text-emerald-600' : 'text-rose-600'}>
                               {tx.type === 'deposit' ? '+' : '−'}{formatEuro(tx.amount_cents)}
                             </span>
@@ -216,7 +217,7 @@ const BankPage = () => {
             </label>
             <label className={fm.label}>
               {t('bank.date')}
-              <input type="text" name="date" defaultValue={formatDateDMonYYYY(getLocalDateString())} className={`mt-1 ${fm.input}`} placeholder="e.g. 10 Mar 2025" />
+              <input type="text" name="date" defaultValue={formatDateDMonYYYY(getLocalDateString(), locale)} className={`mt-1 ${fm.input}`} placeholder={t('common.datePlaceholder')} />
             </label>
             <div className="flex gap-2 pt-2">
               <button type="button" className={fm.btnSecondary} onClick={() => setShowDeposit(false)}>
@@ -246,7 +247,7 @@ const BankPage = () => {
             </label>
             <label className={fm.label}>
               {t('bank.date')}
-              <input type="text" name="date" defaultValue={formatDateDMonYYYY(getLocalDateString())} className={`mt-1 ${fm.input}`} placeholder="e.g. 10 Mar 2025" />
+              <input type="text" name="date" defaultValue={formatDateDMonYYYY(getLocalDateString(), locale)} className={`mt-1 ${fm.input}`} placeholder={t('common.datePlaceholder')} />
             </label>
             <div className="flex gap-2 pt-2">
               <button type="button" className={fm.btnSecondary} onClick={() => setShowWithdraw(false)}>
@@ -279,7 +280,7 @@ const BankPage = () => {
             </label>
             <label className={fm.label}>
               {t('bank.date')}
-              <input type="text" name="date" defaultValue={formatDateDMonYYYY(editingTx.date)} className={`mt-1 ${fm.input}`} placeholder="e.g. 10 Mar 2025" />
+              <input type="text" name="date" defaultValue={formatDateDMonYYYY(editingTx.date, locale)} className={`mt-1 ${fm.input}`} placeholder={t('common.datePlaceholder')} />
             </label>
             <div className="flex gap-2 pt-2">
               <button type="button" className={fm.btnSecondary} onClick={() => setEditingTx(null)}>

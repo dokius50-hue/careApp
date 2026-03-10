@@ -11,18 +11,21 @@ import {
 import { formatDisplayDate } from '../lib/dates.js';
 
 const CurrencyTooltip = ({ active, payload, label }) => {
+  const { i18n } = useTranslation();
+  const locale = i18n.language || i18n.resolvedLanguage || 'en';
   if (!active || !payload || payload.length === 0) return null;
   const [{ value }] = payload;
   return (
     <div className="rounded-lg bg-white px-3 py-2 text-xs shadow">
-      <div className="font-medium">{formatDisplayDate(label)}</div>
+      <div className="font-medium">{formatDisplayDate(label, locale)}</div>
       <div className="text-slate-700">€{(value / 100).toFixed(2)}</div>
     </div>
   );
 };
 
 const LineChart = ({ data }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language || i18n.resolvedLanguage || 'en';
   if (!data || data.length === 0) {
     return <p className="text-xs text-slate-500">{t('common.noDataYet')}</p>;
   }
@@ -31,7 +34,7 @@ const LineChart = ({ data }) => {
     <div className="h-48">
       <ResponsiveContainer width="100%" height="100%">
         <RechartsLineChart data={data} margin={{ top: 10, right: 10, bottom: 0, left: -20 }}>
-          <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={(v) => formatDisplayDate(v)} />
+          <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={(v) => formatDisplayDate(v, locale)} />
           <YAxis
             tick={{ fontSize: 10 }}
             tickFormatter={(v) => `€${(v / 100).toFixed(0)}`}

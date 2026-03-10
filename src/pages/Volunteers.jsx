@@ -7,7 +7,8 @@ import FormModal, { formModalClasses as fm } from '../components/FormModal.jsx';
 import { formatDisplayDate, formatDateDMonYYYY, getLocalDateString, parseDisplayDateToIso } from '../lib/dates.js';
 
 const VolunteersPage = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language || i18n.resolvedLanguage || 'en';
   const { currentOrgId } = useOrg();
   const [volunteers, setVolunteers] = useState([]);
   const [hoursList, setHoursList] = useState([]);
@@ -148,7 +149,7 @@ const VolunteersPage = () => {
           <ul className="space-y-4">
             {sortedDates.map((date) => (
               <li key={date}>
-                <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{formatDisplayDate(date)}</p>
+                <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{formatDisplayDate(date, locale)}</p>
                 <ul className="mt-1 space-y-1 rounded-lg bg-white p-2 shadow-sm">
                   {(groupedByDate[date] || []).map((row) => (
                     <li key={row.id}>
@@ -184,7 +185,7 @@ const VolunteersPage = () => {
             </label>
             <label className={fm.label}>
               {t('volunteers.date')}
-              <input type="text" name="date" defaultValue={formatDateDMonYYYY(getLocalDateString())} className={`mt-1 ${fm.input}`} placeholder="e.g. 10 Mar 2025" />
+              <input type="text" name="date" defaultValue={formatDateDMonYYYY(getLocalDateString(), locale)} className={`mt-1 ${fm.input}`} placeholder={t('common.datePlaceholder')} />
             </label>
             <label className={fm.label}>
               {t('volunteers.hours')}
@@ -258,7 +259,7 @@ const VolunteersPage = () => {
             </label>
             <label className={fm.label}>
               {t('volunteers.date')}
-              <input type="text" name="date" defaultValue={formatDateDMonYYYY(editingHours.date)} className={`mt-1 ${fm.input}`} placeholder="e.g. 10 Mar 2025" />
+              <input type="text" name="date" defaultValue={formatDateDMonYYYY(editingHours.date, locale)} className={`mt-1 ${fm.input}`} placeholder={t('common.datePlaceholder')} />
             </label>
             <label className={fm.label}>
               {t('volunteers.hours')}

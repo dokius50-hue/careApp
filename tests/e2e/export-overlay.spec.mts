@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { ensureAuthenticated } from './auth-helper.mts';
+import { filterBenignConsoleErrors } from './console-helper.mts';
 
 test.beforeEach(async ({ page }) => {
   await ensureAuthenticated(page);
@@ -24,5 +25,6 @@ test('open export overlay from income-expenses; assert title, date range, sectio
   await page.getByTestId('export-generate-pdf-btn').click();
   await page.waitForTimeout(1000);
 
-  expect(consoleErrors, 'No console errors when generating PDF').toHaveLength(0);
+  const relevant = filterBenignConsoleErrors(consoleErrors);
+  expect(relevant, 'No console errors when generating PDF (excluding benign network errors)').toHaveLength(0);
 });

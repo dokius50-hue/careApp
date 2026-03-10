@@ -30,6 +30,6 @@ test('balance visible; add deposit and withdrawal; assert they appear in history
   await page.getByLabel(/amount/i).first().fill('10.50');
   await page.getByLabel(/note/i).fill('E2E withdrawal');
   await page.locator('form').getByRole('button', { name: /save/i }).click();
-  await expect(page.getByTestId('bank-tx-deposit').filter({ hasText: '€25.00' })).toBeVisible({ timeout: 15000 });
-  await expect(page.getByTestId('bank-tx-withdrawal').filter({ hasText: '€10.50' })).toBeVisible();
+  await expect(page.getByTestId('bank-tx-deposit').filter({ hasText: '€25.00' }).first()).toBeVisible({ timeout: 15000 });
+  await expect(page.getByTestId('bank-tx-withdrawal').filter({ hasText: '€10.50' }).first()).toBeVisible();
 });

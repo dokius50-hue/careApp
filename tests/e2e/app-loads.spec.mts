@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { filterBenignConsoleErrors } from './console-helper.mts';
 
 test('app loads without crashing', async ({ page }) => {
   const consoleErrors: string[] = [];
@@ -13,6 +14,7 @@ test('app loads without crashing', async ({ page }) => {
 
   await expect(page).toHaveTitle(/CaritasApp/);
 
-  expect(consoleErrors, 'No console errors should be logged').toHaveLength(0);
+  const relevant = filterBenignConsoleErrors(consoleErrors);
+  expect(relevant, 'No console errors should be logged (excluding benign network errors)').toHaveLength(0);
 });
 

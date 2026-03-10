@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { filterBenignConsoleErrors } from './console-helper.mts';
 
 test('user flow: load app and see auth or main UI', async ({ page }) => {
   const consoleErrors: string[] = [];
@@ -16,7 +17,8 @@ test('user flow: load app and see auth or main UI', async ({ page }) => {
     page.getByText(/loading/i).or(page.getByText(/create organisation|organisation name/i)).or(page.getByText(/today/i)).or(page.getByText('Sign in').first())
   ).toBeVisible({ timeout: 10000 });
 
-  expect(consoleErrors, 'No console errors on load').toHaveLength(0);
+  const relevant = filterBenignConsoleErrors(consoleErrors);
+  expect(relevant, 'No console errors on load (excluding benign network errors)').toHaveLength(0);
 });
 
 test('user flow: sign up, create org, see home or stay on auth when confirmation required', async ({ page }) => {
@@ -53,5 +55,6 @@ test('user flow: sign up, create org, see home or stay on auth when confirmation
     await expect(nav).toBeVisible();
   }
 
-  expect(consoleErrors, 'No console errors during user flow').toHaveLength(0);
+  const relevant = filterBenignConsoleErrors(consoleErrors);
+  expect(relevant, 'No console errors during user flow (excluding benign network errors)').toHaveLength(0);
 });

@@ -9,7 +9,8 @@ import { supabase } from '../lib/supabase.js';
 import { formatEuro } from '../lib/money.js';
 
 const HomePage = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language || i18n.resolvedLanguage || 'en';
   const navigate = useNavigate();
   const { orgs, currentOrgId, setCurrentOrgId, refetchOrgs } = useOrg();
   const [showCreateOrg, setShowCreateOrg] = useState(false);
@@ -120,7 +121,7 @@ const HomePage = () => {
               onClick={() => navigate('/')}
             >
               <p className="text-xs uppercase tracking-wide text-slate-400">{t('home.today')}</p>
-              <p className="mt-1 text-lg font-semibold sm:text-xl" data-testid="home-today">{formatDisplayDate(getLocalDateString())}</p>
+              <p className="mt-1 text-lg font-semibold sm:text-xl" data-testid="home-today">{formatDisplayDate(getLocalDateString(), locale)}</p>
             </button>
             <button
               type="button"

@@ -24,11 +24,11 @@ test('cross-org RLS: user B sees no data from org A', async ({ browser }) => {
 
     await pageB.goto('/');
     await pageB.waitForTimeout(500);
-    await expect(pageB.getByTestId('income-entry').filter({ hasText: 'Org A Income' })).not.toBeVisible();
+    await expect(pageB.getByTestId('income-entry').filter({ hasText: 'Org A Income' }).first()).not.toBeVisible();
 
     await pageB.goto('/income-expenses');
     await pageB.waitForTimeout(500);
-    await expect(pageB.getByTestId('income-entry').filter({ hasText: 'Org A Income' })).not.toBeVisible();
+    await expect(pageB.getByTestId('income-entry').filter({ hasText: 'Org A Income' }).first()).not.toBeVisible();
 
     await pageB.goto('/bank');
     await pageB.waitForTimeout(500);
@@ -42,7 +42,7 @@ test('cross-org RLS: user B sees no data from org A', async ({ browser }) => {
 
     await pageB.goto('/volunteers');
     await pageB.waitForTimeout(500);
-    await expect(pageB.getByTestId('volunteer-hours-entry').filter({ hasText: 'Org A' })).not.toBeVisible();
+    await expect(pageB.getByTestId('volunteer-hours-entry').filter({ hasText: 'Org A' }).first()).not.toBeVisible();
   } finally {
     await contextA.close();
     await contextB.close();
