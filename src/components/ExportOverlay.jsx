@@ -475,13 +475,11 @@ const ExportOverlay = ({ onClose, context }) => {
         setSendStatus(t('exportOverlay.emailNoData') || 'Could not build report data');
         return;
       }
-      const { data: { session } } = await supabase.auth.getSession();
-      const headers = session?.access_token
-        ? { Authorization: `Bearer ${session.access_token}` }
-        : undefined;
       const { error } = await supabase.functions.invoke('send-report-email', {
         body: { to: email.trim(), payload },
-        ...(headers && { headers })
+        headers: {
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+        }
       });
       if (error) {
         setSendStatus(error.message || 'Could not send email');

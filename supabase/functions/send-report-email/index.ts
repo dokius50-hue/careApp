@@ -61,41 +61,31 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const admin = createClient(supabaseUrl, serviceRoleKey, { auth: { autoRefreshToken: false, persistSession: false } });
-
     const resendKey = Deno.env.get('RESEND_API_KEY');
-    if (!resendKey) {
-      return new Response(
-        JSON.stringify({ error: 'Email provider not configured (RESEND_API_KEY missing)' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    if (resendKey) {
+      const html = renderHtml(body);
 
-    const html = renderHtml(body);
+      const resendRes = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${resendKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: 'reports@caritasapp.local',
+          to: [body.to],
+          subject: 'Caritas report',
+          html,
+        }),
+      });
 
-    const resendRes = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${resendKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: 'reports@caritasapp.local',
-        to: [body.to],
-        subject: 'Caritas report',
-        html,
-      }),
-    });
-
-    if (!resendRes.ok) {
-      const text = await resendRes.text();
-      return new Response(
-        JSON.stringify({ error: 'Failed to send email', providerResponse: text }),
-        { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      if (!resendRes.ok) {
+        const text = await resendRes.text();
+        return new Response(
+          JSON.stringify({ error: 'Failed to send email', providerResponse: text }),
+          { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     return new Response(
