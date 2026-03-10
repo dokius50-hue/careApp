@@ -1,6 +1,6 @@
 {
-  "name": "CaritasApp",
-  "short_name": "Caritas",
+  "name": "Shopeto",
+  "short_name": "Shopeto",
   "display": "standalone",
   "start_url": "/",
   "theme_color": "#f97316",

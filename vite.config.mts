@@ -4,8 +4,8 @@ import { VitePWA } from 'vite-plugin-pwa';
 import fs from 'node:fs';
 
 const pwaManifest = {
-  name: 'CaritasApp',
-  short_name: 'Caritas',
+  name: 'Shopeto',
+  short_name: 'Shopeto',
   display: 'standalone',
   start_url: '/',
   theme_color: '#f97316',

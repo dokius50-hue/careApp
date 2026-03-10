@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "CaritasApp",
+    "title": "Shopeto",
     "loading": "Caricamento..."
   },
   "nav": {
@@ -43,7 +43,7 @@
   },
   "authLanding": {
     "tagline": "Gestione negozio solidale, semplificata",
-    "intro": "CaritasApp aiuta la tua organizzazione a tenere traccia di cassa, movimenti bancari e ore dei volontari — tutto da smartphone o tablet.",
+    "intro": "Shopeto aiuta la tua organizzazione a tenere traccia di cassa, movimenti bancari e ore dei volontari — tutto da smartphone o tablet.",
     "forWho": "Pensato per negozi solidali e piccoli team",
     "forWhoDesc": "Che tu gestisca un negozio o più di uno, tutto in un unico posto. I dati restano nella tua organizzazione, non sui singoli dispositivi.",
     "featuresTitle": "Cosa puoi fare",

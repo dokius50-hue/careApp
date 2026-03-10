@@ -5,7 +5,7 @@ test('user flow: load app and see auth or main UI', async ({ page }) => {
   const capture = captureConsoleAndNetwork(page);
   await page.goto('/');
 
-  await expect(page).toHaveTitle(/CaritasApp/);
+  await expect(page).toHaveTitle(/Shopeto/);
   await expect(page.locator('body')).toBeVisible();
   await expect(
     page.getByText(/loading/i).or(page.getByText(/create organisation|organisation name/i)).or(page.getByText(/today/i)).or(page.getByText('Sign in').first())

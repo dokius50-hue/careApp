@@ -20,29 +20,44 @@ type RequestBody = {
   payload: ReportPayload;
 };
 
+const SITE_URL = Deno.env.get('SITE_URL') || Deno.env.get('APP_URL') || 'https://shopeto.org';
+
 const renderHtml = (body: RequestBody) => {
   const { to, payload } = body;
   const { orgName, dateFrom, dateTo, generatedAt } = payload;
+  const openAppUrl = `${SITE_URL.replace(/\/$/, '')}`;
 
   return `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charSet="utf-8" />
-    <title>Caritas report</title>
+    <title>Your Shopeto report</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet" />
   </head>
-  <body style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #0f172a; background: #f9fafb; padding: 24px;">
-    <h1 style="font-size: 20px; margin-bottom: 4px;">Caritas report for ${orgName}</h1>
-    <p style="margin: 0 0 8px 0; font-size: 14px;">
-      Period: <strong>${dateFrom}</strong> to <strong>${dateTo}</strong>
-    </p>
-    <p style="margin: 0 0 16px 0; font-size: 12px; color: #6b7280;">
-      Generated: ${generatedAt}
-    </p>
-    <p style="margin: 0 0 12px 0; font-size: 14px;">
-      This email was sent to <strong>${to}</strong> from CaritasApp. To see the full formatted report,
-      you can also export it as PDF directly in the app.
-    </p>
+  <body style="margin: 0; font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; color: #0f172a; background: #f8fafc; padding: 24px;">
+    <div style="max-width: 480px; margin: 0 auto;">
+      <div style="background: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.06); padding: 28px; margin-bottom: 24px;">
+        <p style="margin: 0 0 8px 0; font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: #64748b;">Shopeto</p>
+        <h1 style="font-size: 22px; font-weight: 700; margin: 0 0 16px 0; background: linear-gradient(90deg, #0d9488, #7c3aed); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Your report is ready</h1>
+        <p style="margin: 0 0 20px 0; font-size: 14px; line-height: 1.5; color: #475569;">
+          This is a summary of the report for <strong>${orgName}</strong> for the period you selected. Open the app to view the full report or export it as PDF.
+        </p>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: 13px; color: #334155;">
+          <tr><td style="padding: 6px 0; border-bottom: 1px solid #f1f5f9;">Period</td><td style="padding: 6px 0; border-bottom: 1px solid #f1f5f9; text-align: right;"><strong>${dateFrom}</strong> to <strong>${dateTo}</strong></td></tr>
+          <tr><td style="padding: 6px 0; border-bottom: 1px solid #f1f5f9;">Generated</td><td style="padding: 6px 0; border-bottom: 1px solid #f1f5f9; text-align: right;">${generatedAt}</td></tr>
+          <tr><td style="padding: 6px 0;">Sent to</td><td style="padding: 6px 0; text-align: right;">${to}</td></tr>
+        </table>
+        <p style="margin: 0 0 20px 0; font-size: 14px; font-weight: 600; color: #0f172a;">What to do next</p>
+        <p style="margin: 0 0 20px 0; font-size: 14px; line-height: 1.5; color: #475569;">
+          Open Shopeto to see the full report, charts, and export a PDF if needed.
+        </p>
+        <a href="${openAppUrl}" style="display: inline-block; padding: 14px 28px; font-size: 14px; font-weight: 600; color: #ffffff; background: linear-gradient(90deg, #0d9488, #7c3aed); border-radius: 9999px; text-decoration: none; box-shadow: 0 2px 8px rgba(13, 148, 136, 0.3);">Open Shopeto</a>
+      </div>
+      <p style="margin: 0; font-size: 12px; color: #94a3b8; text-align: center;">You received this because a report was sent to this address from Shopeto.</p>
+    </div>
   </body>
 </html>`;
 };
@@ -75,7 +90,7 @@ Deno.serve(async (req: Request) => {
         body: JSON.stringify({
           from: fromAddress,
           to: [body.to],
-          subject: 'Caritas report',
+          subject: 'Shopeto report',
           html,
         }),
       });

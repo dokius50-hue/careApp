@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "CaritasApp",
+    "title": "Shopeto",
     "loading": "Loading..."
   },
   "nav": {
@@ -43,7 +43,7 @@
   },
   "authLanding": {
     "tagline": "Charity shop management, simplified",
-    "intro": "CaritasApp helps your organisation track daily cash, bank movements, and volunteer time — all from your phone or tablet.",
+    "intro": "Shopeto helps your organisation track daily cash, bank movements, and volunteer time — all from your phone or tablet.",
     "forWho": "Built for charity shops and small teams",
     "forWhoDesc": "Whether you run one shop or several, keep everything in one place. Data stays with your organisation, not with individual devices.",
     "featuresTitle": "What you can do",

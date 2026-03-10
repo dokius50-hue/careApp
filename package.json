@@ -2,7 +2,7 @@
   "name": "caritasapp",
   "version": "1.0.0",
   "private": true,
-  "description": "CaritasApp – mobile-first PWA for charity shop management",
+  "description": "Shopeto – mobile-first PWA for charity shop management",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

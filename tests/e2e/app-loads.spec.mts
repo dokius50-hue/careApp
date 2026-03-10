@@ -5,7 +5,7 @@ test('app loads without crashing', async ({ page }) => {
   const capture = captureConsoleAndNetwork(page);
   await page.goto('/');
 
-  await expect(page).toHaveTitle(/CaritasApp/);
+  await expect(page).toHaveTitle(/Shopeto/);
   capture.assertNoRelevantErrors();
 });
 
