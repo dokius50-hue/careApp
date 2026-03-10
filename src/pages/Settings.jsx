@@ -19,8 +19,35 @@ const SettingsPage = () => {
   const [addMemberStatus, setAddMemberStatus] = useState(null);
   const [showCreateOrg, setShowCreateOrg] = useState(false);
   const [orgMembers, setOrgMembers] = useState([]);
+  const [editingOrgName, setEditingOrgName] = useState(false);
+  const [orgNameDraft, setOrgNameDraft] = useState('');
+  const [orgNameError, setOrgNameError] = useState('');
 
   const currentOrg = orgs.find((o) => o.id === currentOrgId);
+
+  const startEditOrgName = () => {
+    setOrgNameDraft(currentOrg?.name ?? '');
+    setOrgNameError('');
+    setEditingOrgName(true);
+  };
+
+  const saveOrgName = async () => {
+    const name = orgNameDraft.trim();
+    if (!name || !currentOrgId) return;
+    setOrgNameError('');
+    const { error } = await supabase.from('organisations').update({ name }).eq('id', currentOrgId);
+    if (error) {
+      setOrgNameError(error.message);
+      return;
+    }
+    setEditingOrgName(false);
+    await refetchOrgs();
+  };
+
+  const cancelEditOrgName = () => {
+    setEditingOrgName(false);
+    setOrgNameError('');
+  };
 
   useEffect(() => {
     if (!currentOrgId) {
@@ -141,21 +168,51 @@ const SettingsPage = () => {
         <div className="mt-3 space-y-4">
           <div>
             <p className="text-xs font-medium text-slate-500">{t('settings.currentOrg')}</p>
-            {orgs.length > 1 ? (
-              <select
-                value={currentOrgId || ''}
-                onChange={(e) => setCurrentOrgId(e.target.value || null)}
-                className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5 text-sm"
-                data-testid="settings-switch-org"
-                aria-label={t('settings.switchOrg')}
-              >
-                {orgs.map((org) => (
-                  <option key={org.id} value={org.id}>{org.name}</option>
-                ))}
-              </select>
+            {editingOrgName ? (
+              <div className="mt-1 flex flex-wrap items-center gap-2">
+                <input
+                  type="text"
+                  value={orgNameDraft}
+                  onChange={(e) => setOrgNameDraft(e.target.value)}
+                  className="min-w-0 flex-1 rounded border border-slate-300 px-2 py-1.5 text-sm"
+                  placeholder={t('createOrg.orgName')}
+                  data-testid="settings-edit-org-name-input"
+                />
+                <button type="button" className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm text-white hover:bg-slate-800" onClick={saveOrgName} data-testid="settings-save-org-name">
+                  {t('bank.save')}
+                </button>
+                <button type="button" className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50" onClick={cancelEditOrgName}>
+                  {t('bank.cancel')}
+                </button>
+              </div>
             ) : (
-              <p className="mt-1 text-sm font-medium text-slate-800">{currentOrg?.name ?? '—'}</p>
+              <div className="mt-1 flex flex-wrap items-center gap-2">
+                {orgs.length > 1 ? (
+                  <select
+                    value={currentOrgId || ''}
+                    onChange={(e) => setCurrentOrgId(e.target.value || null)}
+                    className="min-w-0 flex-1 rounded border border-slate-300 px-2 py-1.5 text-sm"
+                    data-testid="settings-switch-org"
+                    aria-label={t('settings.switchOrg')}
+                  >
+                    {orgs.map((org) => (
+                      <option key={org.id} value={org.id}>{org.name}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <p className="text-sm font-medium text-slate-800">{currentOrg?.name ?? '—'}</p>
+                )}
+                <button
+                  type="button"
+                  className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                  onClick={startEditOrgName}
+                  data-testid="settings-rename-org-btn"
+                >
+                  {t('settings.renameOrg')}
+                </button>
+              </div>
             )}
+            {orgNameError && <p className="mt-1 text-xs text-rose-600">{orgNameError}</p>}
           </div>
           <div>
             <button

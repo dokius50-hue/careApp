@@ -159,6 +159,7 @@
   "bank": {
     "currentBalance": "Saldo corrente",
     "noBankAccount": "Nessun conto bancario configurato",
+    "noOrgCreateFirst": "Crea un'organizzazione per usare la banca.",
     "deposit": "Versamento",
     "withdraw": "Prelievo",
     "amount": "Importo",
@@ -206,6 +207,7 @@
     "createOrgHint": "Crea un'organizzazione per iniziare, oppure passa a una a cui appartieni.",
     "switchOrg": "Cambia organizzazione",
     "currentOrg": "Organizzazione corrente",
+    "renameOrg": "Rinomina",
     "createNewOrg": "Crea nuova organizzazione",
     "membersWithAccess": "Membri con accesso",
     "memberCount": "{{count}} membro/i",

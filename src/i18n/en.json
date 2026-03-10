@@ -159,6 +159,7 @@
   "bank": {
     "currentBalance": "Current balance",
     "noBankAccount": "No bank account set up",
+    "noOrgCreateFirst": "Create an organisation to use the bank.",
     "deposit": "Deposit",
     "withdraw": "Withdraw",
     "amount": "Amount",
@@ -206,6 +207,7 @@
     "createOrgHint": "Create an organisation to get started, or switch to one you belong to.",
     "switchOrg": "Switch organisation",
     "currentOrg": "Current organisation",
+    "renameOrg": "Rename",
     "createNewOrg": "Create new organisation",
     "membersWithAccess": "Members with access",
     "memberCount": "{{count}} member(s)",

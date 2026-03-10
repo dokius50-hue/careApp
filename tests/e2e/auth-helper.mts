@@ -31,7 +31,6 @@ export async function ensureAuthenticated(page: Page): Promise<void> {
   const createOrgHeading = page.getByText(/create organisation|organisation name/i);
   if (await createOrgHeading.isVisible({ timeout: 5000 }).catch(() => false)) {
     await page.getByLabel(/organisation name/i).fill('E2E Test Org');
-    await page.getByLabel(/current bank balance|opening/i).fill('0');
     await page.getByRole('button', { name: /create organisation/i }).click();
     await page.waitForTimeout(3000);
   }
@@ -60,7 +59,6 @@ export async function signInAs(page: Page, email: string, password: string): Pro
   const createOrgHeading = page.getByText(/create organisation|organisation name/i);
   if (await createOrgHeading.isVisible({ timeout: 5000 }).catch(() => false)) {
     await page.getByLabel(/organisation name/i).fill('E2E Test Org');
-    await page.getByLabel(/current bank balance|opening/i).fill('0');
     await page.getByRole('button', { name: /create organisation/i }).click();
     await page.waitForTimeout(3000);
   }

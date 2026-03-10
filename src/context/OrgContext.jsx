@@ -28,16 +28,15 @@ export const OrgProvider = ({ children }) => {
         .select('org_id, organisations ( id, name, deleted_at )')
         .eq('user_id', user.id);
 
-      // #region agent log
       const activeOrgs =
         data
           ?.map((row) => row.organisations)
           .filter((o) => o && o.deleted_at === null) ?? [];
+
       debugLog('OrgContext.jsx:load', 'org_load_result', {
         errorMessage: error?.message ?? null,
         activeOrgsCount: activeOrgs.length
       }, 'H4');
-      // #endregion
 
       if (error) {
         // eslint-disable-next-line no-console
@@ -51,8 +50,34 @@ export const OrgProvider = ({ children }) => {
       setOrgs(activeOrgs);
 
       if (activeOrgs.length === 0) {
-        setCurrentOrgIdState(null);
-        localStorage.removeItem(STORAGE_KEY);
+        const defaultName = user?.email ? `${user.email.split('@')[0]}'s organisation` : 'My organisation';
+        const { error: rpcError } = await supabase.rpc('create_organisation', {
+          p_name: defaultName,
+          p_opening_balance_cents: 0
+        });
+        if (rpcError) {
+          // eslint-disable-next-line no-console
+          console.error('Error auto-creating organisation', rpcError);
+          setCurrentOrgIdState(null);
+          localStorage.removeItem(STORAGE_KEY);
+          setLoading(false);
+          return;
+        }
+        const { data: data2, error: err2 } = await supabase
+          .from('org_members')
+          .select('org_id, organisations ( id, name, deleted_at )')
+          .eq('user_id', user.id);
+        const afterOrgs =
+          data2?.map((row) => row.organisations).filter((o) => o && o.deleted_at === null) ?? [];
+        if (err2 || afterOrgs.length === 0) {
+          setCurrentOrgIdState(null);
+          localStorage.removeItem(STORAGE_KEY);
+          setLoading(false);
+          return;
+        }
+        setOrgs(afterOrgs);
+        setCurrentOrgIdState(afterOrgs[0].id);
+        localStorage.setItem(STORAGE_KEY, afterOrgs[0].id);
         setLoading(false);
         return;
       }

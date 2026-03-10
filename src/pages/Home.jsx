@@ -15,6 +15,9 @@ const HomePage = () => {
   const { orgs, currentOrgId, setCurrentOrgId, refetchOrgs } = useOrg();
   const [showCreateOrg, setShowCreateOrg] = useState(false);
   const [showExport, setShowExport] = useState(false);
+  const [editingOrgName, setEditingOrgName] = useState(false);
+  const [orgNameDraft, setOrgNameDraft] = useState('');
+  const [orgNameError, setOrgNameError] = useState('');
   const [metrics, setMetrics] = useState({
     bankBalanceCents: null,
     totalIncomeCents: null,
@@ -24,6 +27,30 @@ const HomePage = () => {
   });
 
   const currentOrg = orgs.find((o) => o.id === currentOrgId);
+
+  const startEditOrgName = () => {
+    setOrgNameDraft(currentOrg?.name ?? '');
+    setOrgNameError('');
+    setEditingOrgName(true);
+  };
+
+  const saveOrgName = async () => {
+    const name = orgNameDraft.trim();
+    if (!name || !currentOrgId) return;
+    setOrgNameError('');
+    const { error } = await supabase.from('organisations').update({ name }).eq('id', currentOrgId);
+    if (error) {
+      setOrgNameError(error.message);
+      return;
+    }
+    setEditingOrgName(false);
+    await refetchOrgs();
+  };
+
+  const cancelEditOrgName = () => {
+    setEditingOrgName(false);
+    setOrgNameError('');
+  };
 
   useEffect(() => {
     if (!currentOrgId) {
@@ -76,28 +103,58 @@ const HomePage = () => {
       <section className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
         <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{t('home.currentOrg')}</p>
         <div className="mt-2 flex flex-wrap items-center gap-2">
-          {orgs.length > 1 ? (
-            <select
-              value={currentOrgId || ''}
-              onChange={(e) => setCurrentOrgId(e.target.value || null)}
-              className="min-w-0 flex-1 rounded-lg border border-slate-300 px-2 py-1.5 text-sm font-medium text-slate-800"
-              aria-label={t('settings.switchOrg')}
-            >
-              {orgs.map((org) => (
-                <option key={org.id} value={org.id}>{org.name}</option>
-              ))}
-            </select>
+          {editingOrgName ? (
+            <>
+              <input
+                type="text"
+                value={orgNameDraft}
+                onChange={(e) => setOrgNameDraft(e.target.value)}
+                className="min-w-0 flex-1 rounded-lg border border-slate-300 px-2 py-1.5 text-sm font-medium text-slate-800"
+                placeholder={t('createOrg.orgName')}
+                data-testid="home-edit-org-name-input"
+              />
+              <button type="button" className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-800" onClick={saveOrgName} data-testid="home-save-org-name">
+                {t('bank.save')}
+              </button>
+              <button type="button" className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50" onClick={cancelEditOrgName}>
+                {t('bank.cancel')}
+              </button>
+            </>
           ) : (
-            <span className="text-lg font-semibold text-slate-800">{currentOrg?.name ?? '—'}</span>
+            <>
+              {orgs.length > 1 ? (
+                <select
+                  value={currentOrgId || ''}
+                  onChange={(e) => setCurrentOrgId(e.target.value || null)}
+                  className="min-w-0 flex-1 rounded-lg border border-slate-300 px-2 py-1.5 text-sm font-medium text-slate-800"
+                  aria-label={t('settings.switchOrg')}
+                >
+                  {orgs.map((org) => (
+                    <option key={org.id} value={org.id}>{org.name}</option>
+                  ))}
+                </select>
+              ) : (
+                <span className="text-lg font-semibold text-slate-800">{currentOrg?.name ?? '—'}</span>
+              )}
+              <button
+                type="button"
+                className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                onClick={startEditOrgName}
+                data-testid="home-rename-org-btn"
+              >
+                {t('settings.renameOrg')}
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-800"
+                onClick={() => setShowCreateOrg(true)}
+              >
+                {t('home.createNewOrg')}
+              </button>
+            </>
           )}
-          <button
-            type="button"
-            className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-800"
-            onClick={() => setShowCreateOrg(true)}
-          >
-            {t('home.createNewOrg')}
-          </button>
         </div>
+        {orgNameError && <p className="mt-1 text-xs text-rose-600">{orgNameError}</p>}
       </section>
 
       <section className="rounded-xl bg-slate-900 p-4 text-white">

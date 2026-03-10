@@ -10,7 +10,7 @@ import { formatEuro, parseEuroToCents } from '../lib/money.js';
 const BankPage = () => {
   const { t, i18n } = useTranslation();
   const locale = i18n.language || i18n.resolvedLanguage || 'en';
-  const { currentOrgId } = useOrg();
+  const { currentOrgId, refetchOrgs } = useOrg();
   const [bankAccount, setBankAccount] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [balanceCents, setBalanceCents] = useState(null);
@@ -18,6 +18,8 @@ const BankPage = () => {
   const [showWithdraw, setShowWithdraw] = useState(false);
   const [showExport, setShowExport] = useState(false);
   const [editingTx, setEditingTx] = useState(null);
+  const [showNoOrgStartingBalance, setShowNoOrgStartingBalance] = useState(false);
+  const [noOrgSubmitError, setNoOrgSubmitError] = useState('');
 
   const loadData = async () => {
     if (!currentOrgId) return;
@@ -111,6 +113,23 @@ const BankPage = () => {
     void loadData();
   };
 
+  const handleNoOrgCreateOrg = async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const name = (form.orgName?.value || '').trim() || 'My organisation';
+    setNoOrgSubmitError('');
+    const { error } = await supabase.rpc('create_organisation', {
+      p_name: name,
+      p_opening_balance_cents: 0
+    });
+    if (error) {
+      setNoOrgSubmitError(error.message);
+      return;
+    }
+    setShowNoOrgStartingBalance(false);
+    await refetchOrgs();
+  };
+
   const centsToEuroInput = (cents) => (cents != null ? (Number(cents) / 100).toFixed(2) : '');
 
   const groupedByMonth = transactions.reduce((acc, tx) => {
@@ -119,6 +138,43 @@ const BankPage = () => {
     acc[key].push(tx);
     return acc;
   }, {});
+
+  if (currentOrgId == null) {
+    return (
+      <div className="space-y-6">
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <p className="text-sm text-slate-600">{t('bank.noOrgCreateFirst')}</p>
+          <button
+            type="button"
+            className="mt-4 w-full rounded-xl border border-slate-300 bg-white py-2.5 text-sm font-medium text-slate-800 hover:bg-slate-50"
+            onClick={() => setShowNoOrgStartingBalance(true)}
+            data-testid="bank-set-starting-balance-btn"
+          >
+            {t('createOrg.submit')}
+          </button>
+        </div>
+        {showNoOrgStartingBalance && (
+          <FormModal open onClose={() => { setShowNoOrgStartingBalance(false); setNoOrgSubmitError(''); }} title={t('createOrg.title')}>
+            <form onSubmit={handleNoOrgCreateOrg} className="space-y-3">
+              <label className={fm.label}>
+                {t('createOrg.orgName')}
+                <input type="text" name="orgName" className={`mt-1 ${fm.input}`} defaultValue="My organisation" placeholder="My organisation" />
+              </label>
+              {noOrgSubmitError && <p className="text-xs text-rose-600">{noOrgSubmitError}</p>}
+              <div className="flex gap-2 pt-2">
+                <button type="button" className={fm.btnSecondary} onClick={() => { setShowNoOrgStartingBalance(false); setNoOrgSubmitError(''); }}>
+                  {t('bank.cancel')}
+                </button>
+                <button type="submit" className={fm.btnPrimaryEmerald}>
+                  {t('bank.save')}
+                </button>
+              </div>
+            </form>
+          </FormModal>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

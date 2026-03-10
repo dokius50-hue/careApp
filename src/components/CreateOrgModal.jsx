@@ -6,7 +6,6 @@ import FormModal, { formModalClasses as fm } from './FormModal.jsx';
 const CreateOrgModal = ({ onClose, onSuccess }) => {
   const { t } = useTranslation();
   const [name, setName] = useState('');
-  const [balance, setBalance] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -14,10 +13,9 @@ const CreateOrgModal = ({ onClose, onSuccess }) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-    const openingBalanceCents = Math.round(parseFloat(balance || '0') * 100);
     const { data: newOrgId, error: rpcError } = await supabase.rpc('create_organisation', {
       p_name: name,
-      p_opening_balance_cents: openingBalanceCents
+      p_opening_balance_cents: 0
     });
     setLoading(false);
     if (rpcError) {
@@ -40,19 +38,6 @@ const CreateOrgModal = ({ onClose, onSuccess }) => {
             className={`mt-1 ${fm.input}`}
             required
           />
-        </label>
-        <label className={fm.label}>
-          {t('createOrg.openingBalance')}
-          <div className="relative mt-1">
-            <span className={fm.amountEuroPrefix} aria-hidden>€</span>
-            <input
-              type="number"
-              step="0.01"
-              value={balance}
-              onChange={(e) => setBalance(e.target.value)}
-              className={fm.inputWithEuroPrefix}
-            />
-          </div>
         </label>
         {error && <p className="text-xs text-rose-600">{error}</p>}
         <div className="flex gap-2 pt-2">

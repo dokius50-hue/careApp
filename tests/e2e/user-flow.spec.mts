@@ -37,7 +37,6 @@ test('user flow: sign up, create org, see home or stay on auth when confirmation
   const createOrgHeading = page.getByText(/create organisation|organisation name/i);
   if (await createOrgHeading.isVisible({ timeout: 5000 }).catch(() => false)) {
     await page.getByLabel(/organisation name/i).fill('E2E Test Org');
-    await page.getByLabel(/current bank balance|opening/i).fill('100');
     await page.getByRole('button', { name: /create organisation/i }).click();
     await page.waitForTimeout(3000);
   }

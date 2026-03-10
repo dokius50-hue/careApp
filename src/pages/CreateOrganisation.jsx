@@ -7,7 +7,6 @@ const CreateOrganisationPage = () => {
   const { t } = useTranslation();
   const { orgs, refetchOrgs } = useOrg();
   const [name, setName] = useState('');
-  const [balance, setBalance] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -16,11 +15,9 @@ const CreateOrganisationPage = () => {
     setError('');
     setLoading(true);
 
-    const openingBalanceCents = Math.round(parseFloat(balance || '0') * 100);
-
     const { error: rpcError } = await supabase.rpc('create_organisation', {
       p_name: name,
-      p_opening_balance_cents: openingBalanceCents
+      p_opening_balance_cents: 0
     });
 
     if (rpcError) {
@@ -51,19 +48,6 @@ const CreateOrganisationPage = () => {
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-          />
-        </div>
-        <div className="space-y-1">
-          <label className="block text-xs font-medium text-slate-600" htmlFor="opening-balance">
-            {t('createOrg.openingBalance')}
-          </label>
-          <input
-            id="opening-balance"
-            type="number"
-            step="0.01"
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-            value={balance}
-            onChange={(e) => setBalance(e.target.value)}
           />
         </div>
         {error && <p className="text-xs text-red-600">{error}</p>}
