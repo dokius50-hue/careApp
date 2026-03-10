@@ -5,6 +5,47 @@ export const getLocalDateString = (date = new Date()) => {
   return `${year}-${month}-${day}`;
 };
 
+const toLocalDateFromIso = (isoDate) => {
+  if (!isoDate || typeof isoDate !== 'string') return null;
+  const [y, m, d] = isoDate.split('-').map((n) => Number(n));
+  if (!y || !m || !d) return null;
+  return new Date(y, m - 1, d);
+};
+
+export const formatDisplayDate = (value, locale = 'en') => {
+  if (!value) return '';
+  const dateObj = value instanceof Date ? value : toLocalDateFromIso(value);
+  if (!dateObj || Number.isNaN(dateObj.getTime())) return String(value);
+
+  const parts = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short' }).formatToParts(dateObj);
+  const day = parts.find((p) => p.type === 'day')?.value;
+  const month = parts.find((p) => p.type === 'month')?.value;
+  if (!day || !month) return new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short' }).format(dateObj);
+  return `${day} ${month}`;
+};
+
+export const formatDisplayMonthYear = (isoDate, locale = 'en') => {
+  const d = toLocalDateFromIso(isoDate);
+  if (!d) return '';
+  const parts = new Intl.DateTimeFormat(locale, { month: 'short', year: 'numeric' }).formatToParts(d);
+  const month = parts.find((p) => p.type === 'month')?.value;
+  const year = parts.find((p) => p.type === 'year')?.value;
+  if (!month || !year) return new Intl.DateTimeFormat(locale, { month: 'short', year: 'numeric' }).format(d);
+  return `${month} ${year}`;
+};
+
+export const formatDisplayDateTime = (value, locale = 'en') => {
+  if (!value) return '';
+  if (value instanceof Date) return `${formatDisplayDate(value, locale)} ${value.toTimeString().slice(0, 5)}`;
+  if (typeof value !== 'string') return String(value);
+  const maybeIso = value.slice(0, 10);
+  const time = value.slice(11, 16);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(maybeIso) && /^\d{2}:\d{2}$/.test(time)) {
+    return `${formatDisplayDate(maybeIso, locale)} ${time}`;
+  }
+  return value;
+};
+
 export const getNinetyDaysAgo = () => {
   const d = new Date();
   d.setDate(d.getDate() - 90);

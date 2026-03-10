@@ -3,19 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useOrg } from '../context/OrgContext.jsx';
 import { supabase } from '../lib/supabase.js';
 import ExportOverlay from '../components/ExportOverlay.jsx';
-import { getLocalDateString } from '../lib/dates.js';
+import { formatDisplayDate, formatDisplayMonthYear, getLocalDateString } from '../lib/dates.js';
 import { formatEuro, parseEuroToCents } from '../lib/money.js';
-
-const MONTHS = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
-];
-
-const formatMonthYear = (dateStr) => {
-  if (!dateStr) return '';
-  const [y, m] = dateStr.split('-').map(Number);
-  return `${MONTHS[(m || 1) - 1]} ${y || ''}`;
-};
 
 const BankPage = () => {
   const { t } = useTranslation();
@@ -26,6 +15,7 @@ const BankPage = () => {
   const [showDeposit, setShowDeposit] = useState(false);
   const [showWithdraw, setShowWithdraw] = useState(false);
   const [showExport, setShowExport] = useState(false);
+  const [editingTx, setEditingTx] = useState(null);
 
   const loadData = async () => {
     if (!currentOrgId) return;
@@ -99,8 +89,30 @@ const BankPage = () => {
     void loadData();
   };
 
+  const handleUpdateTransaction = async (e) => {
+    e.preventDefault();
+    if (!editingTx?.id) return;
+    const form = e.target;
+    const amountCents = parseEuroToCents(form.amount.value);
+    const note = form.note.value.trim() || null;
+    const date = form.date.value || getLocalDateString();
+    if (amountCents <= 0) return;
+    await supabase.from('bank_transactions').update({ amount_cents: amountCents, note, date }).eq('id', editingTx.id);
+    setEditingTx(null);
+    void loadData();
+  };
+
+  const handleDeleteTransaction = async () => {
+    if (!editingTx?.id) return;
+    await supabase.from('bank_transactions').delete().eq('id', editingTx.id);
+    setEditingTx(null);
+    void loadData();
+  };
+
+  const centsToEuroInput = (cents) => (cents != null ? (Number(cents) / 100).toFixed(2) : '');
+
   const groupedByMonth = transactions.reduce((acc, tx) => {
-    const key = formatMonthYear(tx.date);
+    const key = formatDisplayMonthYear(tx.date);
     if (!acc[key]) acc[key] = [];
     acc[key].push(tx);
     return acc;
@@ -162,17 +174,20 @@ const BankPage = () => {
                     <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{monthLabel}</p>
                     <ul className="mt-1 space-y-1 rounded-lg bg-white p-2 shadow-sm">
                       {list.map((tx) => (
-                        <li
-                          key={tx.id}
-                          className="flex items-center justify-between text-sm"
-                          data-testid={tx.type === 'deposit' ? 'bank-tx-deposit' : 'bank-tx-withdrawal'}
-                        >
-                          <span className="font-medium">{tx.type === 'deposit' ? '+' : '−'}</span>
-                          <span className="flex-1 truncate px-2 text-slate-700">{tx.note || '—'}</span>
-                          <span className="text-slate-500">{tx.date}</span>
-                          <span className={tx.type === 'deposit' ? 'text-emerald-600' : 'text-rose-600'}>
-                            {tx.type === 'deposit' ? '+' : '−'}{formatEuro(tx.amount_cents)}
-                          </span>
+                        <li key={tx.id}>
+                          <button
+                            type="button"
+                            onClick={() => setEditingTx(tx)}
+                            className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left text-sm transition-colors hover:bg-slate-50 active:bg-slate-100"
+                            data-testid={tx.type === 'deposit' ? 'bank-tx-deposit' : 'bank-tx-withdrawal'}
+                          >
+                            <span className="font-medium">{tx.type === 'deposit' ? '+' : '−'}</span>
+                            <span className="flex-1 truncate px-2 text-slate-700">{tx.note || '—'}</span>
+                            <span className="text-slate-500">{formatDisplayDate(tx.date)}</span>
+                            <span className={tx.type === 'deposit' ? 'text-emerald-600' : 'text-rose-600'}>
+                              {tx.type === 'deposit' ? '+' : '−'}{formatEuro(tx.amount_cents)}
+                            </span>
+                          </button>
                         </li>
                       ))}
                     </ul>
@@ -238,6 +253,55 @@ const BankPage = () => {
                   {t('bank.cancel')}
                 </button>
                 <button type="submit" className="rounded-lg bg-rose-600 px-3 py-1.5 text-sm text-white hover:bg-rose-700">
+                  {t('bank.save')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {editingTx && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setEditingTx(null)} aria-hidden />
+          <div className="relative w-full max-w-sm rounded-xl bg-white p-4 shadow-lg">
+            <h3 className="mb-3 text-lg font-semibold">{t('bank.editTransaction')}</h3>
+            <form onSubmit={handleUpdateTransaction} className="space-y-3">
+              <p className="text-xs text-slate-500">
+                {editingTx.type === 'deposit' ? t('bank.deposit') : t('bank.withdraw')}
+              </p>
+              <label className="block text-sm font-medium">
+                {t('bank.amount')} (€)
+                <input type="text" name="amount" defaultValue={centsToEuroInput(editingTx.amount_cents)} className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5" placeholder="0.00" required />
+              </label>
+              <label className="block text-sm font-medium">
+                {t('bank.note')}
+                <input type="text" name="note" defaultValue={editingTx.note ?? ''} className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5" />
+              </label>
+              <label className="block text-sm font-medium">
+                {t('bank.date')}
+                <input type="date" name="date" defaultValue={editingTx.date} className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5" />
+              </label>
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
+                  onClick={() => setEditingTx(null)}
+                >
+                  {t('bank.cancel')}
+                </button>
+                <button
+                  type="button"
+                  className="rounded-lg border border-rose-300 px-3 py-1.5 text-sm text-rose-700 hover:bg-rose-50"
+                  onClick={handleDeleteTransaction}
+                  data-testid="bank-delete-transaction-btn"
+                >
+                  {t('common.delete')}
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm text-white hover:bg-slate-800"
+                >
                   {t('bank.save')}
                 </button>
               </div>

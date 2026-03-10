@@ -8,13 +8,14 @@ import {
   Tooltip,
   ResponsiveContainer
 } from 'recharts';
+import { formatDisplayDate } from '../lib/dates.js';
 
 const CurrencyTooltip = ({ active, payload, label }) => {
   if (!active || !payload || payload.length === 0) return null;
   const [{ value }] = payload;
   return (
     <div className="rounded-lg bg-white px-3 py-2 text-xs shadow">
-      <div className="font-medium">{label}</div>
+      <div className="font-medium">{formatDisplayDate(label)}</div>
       <div className="text-slate-700">€{(value / 100).toFixed(2)}</div>
     </div>
   );
@@ -30,7 +31,7 @@ const LineChart = ({ data }) => {
     <div className="h-48">
       <ResponsiveContainer width="100%" height="100%">
         <RechartsLineChart data={data} margin={{ top: 10, right: 10, bottom: 0, left: -20 }}>
-          <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+          <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={(v) => formatDisplayDate(v)} />
           <YAxis
             tick={{ fontSize: 10 }}
             tickFormatter={(v) => `€${(v / 100).toFixed(0)}`}

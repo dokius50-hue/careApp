@@ -24,7 +24,10 @@
     "noData": "No data yet",
     "revenueChart": "Revenue (last 20 days open)",
     "topVolunteers": "Top volunteers (last 90 days)",
-    "noVolunteerHours": "No volunteer hours yet."
+    "noVolunteerHours": "No volunteer hours yet.",
+    "dashboard": "Dashboard",
+    "loading": "Loading...",
+    "generateReport": "Generate report"
   },
   "createOrg": {
     "title": "Create organisation",
@@ -34,7 +37,8 @@
     "submit": "Create organisation"
   },
   "common": {
-    "noDataYet": "No data yet."
+    "noDataYet": "No data yet.",
+    "delete": "Delete"
   },
   "exportPdf": {
     "reportTitle": "Export Report",
@@ -63,7 +67,11 @@
     "recentIncome": "Recent income",
     "recentExpense": "Recent expenses",
     "noEntries": "No entries yet",
-    "export": "Export"
+    "export": "Export",
+    "netCashPosition": "Net cash position",
+    "bankAccountPosition": "Bank account position",
+    "editIncome": "Edit income",
+    "editExpense": "Edit expense"
   },
   "exportOverlay": {
     "title": "Export Report",
@@ -71,10 +79,24 @@
     "dateFrom": "From",
     "dateTo": "To",
     "generatePdf": "Generate PDF",
+    "sendEmail": "Send by email",
+    "emailPlaceholder": "Recipient email",
+    "emailMissing": "Please enter an email address.",
+    "emailNoData": "Could not build report for this period.",
+    "emailSent": "Report sent by email.",
+    "mode": {
+      "entries": "All entries",
+      "month": "By month",
+      "item": "By item",
+      "byVolunteer": "By volunteer"
+    },
     "sections": {
+      "incomeSummary": "Income summary",
+      "expenseSummary": "Expense summary",
       "incomeEntries": "Income entries",
       "expenseEntries": "Expense entries",
       "revenueChart": "Revenue chart",
+      "bankSummary": "Bank summary",
       "bankTransactions": "Bank transactions",
       "volunteerHoursSummary": "Volunteer hours summary",
       "hoursByVolunteer": "Hours by volunteer",
@@ -93,11 +115,13 @@
     "cancel": "Cancel",
     "transactions": "Transactions",
     "noTransactions": "No transactions yet.",
-    "export": "Export"
+    "export": "Export",
+    "editTransaction": "Edit transaction"
   },
   "volunteers": {
     "addHours": "Add Hours",
     "manageVolunteers": "Manage Volunteers",
+    "totalHoursLogged": "Total hours logged",
     "hoursPerWeek": "Volunteer hours (last 5 weeks)",
     "volunteer": "Volunteer",
     "hours": "Hours",
@@ -110,7 +134,8 @@
     "noVolunteers": "No volunteers yet.",
     "hoursHistory": "Hours history",
     "noHours": "No hours logged yet.",
-    "export": "Export"
+    "export": "Export",
+    "editHours": "Edit hours"
   },
   "settings": {
     "title": "Settings",

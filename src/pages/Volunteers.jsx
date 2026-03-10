@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useOrg } from '../context/OrgContext.jsx';
 import { supabase } from '../lib/supabase.js';
 import ExportOverlay from '../components/ExportOverlay.jsx';
-import { getLocalDateString } from '../lib/dates.js';
+import { formatDisplayDate, getLocalDateString } from '../lib/dates.js';
 
 const VolunteersPage = () => {
   const { t } = useTranslation();
@@ -14,6 +14,7 @@ const VolunteersPage = () => {
   const [showManage, setShowManage] = useState(false);
   const [showExport, setShowExport] = useState(false);
   const [newVolunteerName, setNewVolunteerName] = useState('');
+  const [editingHours, setEditingHours] = useState(null);
 
   const loadData = async () => {
     if (!currentOrgId) return;
@@ -57,6 +58,26 @@ const VolunteersPage = () => {
     void loadData();
   };
 
+  const handleUpdateHours = async (e) => {
+    e.preventDefault();
+    if (!editingHours?.id) return;
+    const form = e.target;
+    const volunteerId = form.volunteer_id.value;
+    const date = form.date.value || getLocalDateString();
+    const hours = parseFloat(form.hours.value);
+    if (!volunteerId || Number.isNaN(hours) || hours <= 0) return;
+    await supabase.from('volunteer_hours').update({ volunteer_id: volunteerId, date, hours }).eq('id', editingHours.id);
+    setEditingHours(null);
+    void loadData();
+  };
+
+  const handleDeleteHours = async () => {
+    if (!editingHours?.id) return;
+    await supabase.from('volunteer_hours').delete().eq('id', editingHours.id);
+    setEditingHours(null);
+    void loadData();
+  };
+
   const handleAddVolunteer = async (e) => {
     e.preventDefault();
     const name = newVolunteerName.trim();
@@ -79,6 +100,7 @@ const VolunteersPage = () => {
   }, {});
 
   const sortedDates = Object.keys(groupedByDate).sort((a, b) => (b > a ? 1 : -1));
+  const totalHours = hoursList.reduce((s, row) => s + (Number(row.hours) || 0), 0);
 
   return (
     <div className="space-y-6">
@@ -92,6 +114,11 @@ const VolunteersPage = () => {
           {t('volunteers.export')}
         </button>
       </div>
+
+      <section className="rounded-xl bg-slate-900 p-4 text-white">
+        <p className="text-xs uppercase tracking-wide text-slate-300">{t('volunteers.totalHoursLogged')}</p>
+        <p className="mt-1 text-2xl font-semibold" data-testid="volunteers-total-hours">{Math.round(totalHours)} h</p>
+      </section>
 
       <div className="flex gap-2">
         <button
@@ -120,16 +147,19 @@ const VolunteersPage = () => {
           <ul className="space-y-4">
             {sortedDates.map((date) => (
               <li key={date}>
-                <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{date}</p>
+                <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{formatDisplayDate(date)}</p>
                 <ul className="mt-1 space-y-1 rounded-lg bg-white p-2 shadow-sm">
                   {(groupedByDate[date] || []).map((row) => (
-                    <li
-                      key={row.id}
-                      className="flex items-center justify-between text-sm"
-                      data-testid="volunteer-hours-entry"
-                    >
-                      <span className="font-medium">{row.volunteers?.name ?? '—'}</span>
-                      <span className="text-slate-600">{Number(row.hours).toFixed(1)} h</span>
+                    <li key={row.id}>
+                      <button
+                        type="button"
+                        onClick={() => setEditingHours(row)}
+                        className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left text-sm transition-colors hover:bg-slate-50 active:bg-slate-100"
+                        data-testid="volunteer-hours-entry"
+                      >
+                        <span className="font-medium">{row.volunteers?.name ?? '—'}</span>
+                        <span className="text-slate-600">{Number(row.hours).toFixed(1)} h</span>
+                      </button>
                     </li>
                   ))}
                 </ul>
@@ -217,6 +247,57 @@ const VolunteersPage = () => {
                 {t('volunteers.cancel')}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {editingHours && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setEditingHours(null)} aria-hidden />
+          <div className="relative w-full max-w-sm rounded-xl bg-white p-4 shadow-lg">
+            <h3 className="mb-3 text-lg font-semibold">{t('volunteers.editHours')}</h3>
+            <form onSubmit={handleUpdateHours} className="space-y-3">
+              <label className="block text-sm font-medium">
+                {t('volunteers.volunteer')}
+                <select name="volunteer_id" defaultValue={editingHours.volunteer_id} className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5" required data-testid="edit-hours-volunteer-select">
+                  <option value="">—</option>
+                  {volunteers.map((v) => (
+                    <option key={v.id} value={v.id}>{v.name}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="block text-sm font-medium">
+                {t('volunteers.date')}
+                <input type="date" name="date" defaultValue={editingHours.date} className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5" />
+              </label>
+              <label className="block text-sm font-medium">
+                {t('volunteers.hours')}
+                <input type="number" name="hours" step="any" min="0" defaultValue={Number(editingHours.hours)} placeholder="0.0" className="mt-1 w-full rounded border border-slate-300 px-2 py-1.5" required />
+              </label>
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
+                  onClick={() => setEditingHours(null)}
+                >
+                  {t('volunteers.cancel')}
+                </button>
+                <button
+                  type="button"
+                  className="rounded-lg border border-rose-300 px-3 py-1.5 text-sm text-rose-700 hover:bg-rose-50"
+                  onClick={handleDeleteHours}
+                  data-testid="volunteers-delete-hours-btn"
+                >
+                  {t('common.delete')}
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm text-white hover:bg-slate-800"
+                >
+                  {t('volunteers.save')}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
